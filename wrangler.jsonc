@@ -1,0 +1,16 @@
+{
+  "name": "attendance-tracker",
+  "main": "dist/index.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "dist/public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  // For local dev, wrangler reads these from .dev.vars file
+  // For production, set these in Cloudflare dashboard > Workers > Settings > Variables
+  "vars": {
+    "SUPABASE_URL": "YOUR_SUPABASE_PROJECT_URL",
+    "SUPABASE_KEY": "YOUR_SUPABASE_SERVICE_ROLE_KEY"
+  }
+}
