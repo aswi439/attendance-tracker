@@ -6685,20 +6685,23 @@ html[data-theme="light"] .filter-chip.active {
 
 /* ========================================================================
    TABLES & MULTIPLE COLORED HEADINGS (Retained from Dark Theme)
+   Row Differentiation with Progressive Lighter Shades (Image 2 style)
    ======================================================================== */
 html[data-theme="light"] .ad-table-container {
   background: #FFFFFF !important;
   border: 1px solid #E2E8F0 !important;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
 }
 
 html[data-theme="light"] .ad-card .tbl th,
 html[data-theme="light"] .tbl th {
   background: #FFFFFF !important;
-  border-bottom: 2px solid #E2E8F0 !important;
+  border-bottom: 2px solid #CBD5E1 !important;
 }
 
-/* 1. Worker Identity & Info Headers (Black / Deep Slate) */
+/* 1. Worker Identity & Info Headers (Solid Jet Black) */
 html[data-theme="light"] .ad-card .tbl th.th-col-worker,
 html[data-theme="light"] .ad-card .tbl th.th-col-type,
 html[data-theme="light"] .ad-card .tbl th.th-col-desig,
@@ -6706,7 +6709,7 @@ html[data-theme="light"] .ad-card .tbl th.th-col-id,
 html[data-theme="light"] .ad-card .tbl th.th-col-doj,
 html[data-theme="light"] .ad-card .tbl th.th-col-name,
 html[data-theme="light"] .th-info {
-  color: #0F172A !important;
+  color: #000000 !important;
   font-weight: 800 !important;
 }
 
@@ -6785,27 +6788,116 @@ html[data-theme="light"] .ad-card .tbl th.th-col-unspecified {
   font-weight: 800 !important;
 }
 
-/* Table Body Rows */
+/* ========================================================================
+   TABLE ROWS (Image 2 style: Progressive Lighter Shades & Left Color Accents)
+   ======================================================================== */
+/* Tier 1 (odd-1) */
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 1) td,
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 1) td {
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 1) td:first-child,
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 1) td:first-child {
+  border-left: 5px solid #1E40AF !important; /* Deep Ocean Accent */
+}
+
+/* Tier 2 (even-1) */
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 2) td,
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 2) td {
+  background: #F8FAFD !important; /* Soft porcelain tint */
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 2) td:first-child,
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 2) td:first-child {
+  border-left: 5px solid #9A8262 !important; /* Warm Taupe / Sand Accent */
+}
+
+/* Tier 3 (odd-2) */
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 3) td,
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 3) td {
+  background: #F2F6FA !important; /* Gentle slate tint */
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 3) td:first-child,
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 3) td:first-child {
+  border-left: 5px solid #6E6259 !important; /* Earth Slate Accent */
+}
+
+/* Tier 4 (even-2) */
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 4) td,
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 4) td {
+  background: #EAF0F7 !important; /* Deeper contrast tint */
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 4) td:first-child,
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 4) td:first-child {
+  border-left: 5px solid #363636 !important; /* Charcoal Accent */
+}
+
+/* Row Hover State */
+html[data-theme="light"] .ad-card .tbl tbody tr:hover td,
+html[data-theme="light"] .tbl tbody tr:hover td {
+  background: #E0EFFF !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:hover td:first-child,
+html[data-theme="light"] .tbl tbody tr:hover td:first-child {
+  border-left-color: #0284C7 !important;
+}
+
+/* Table Text & Numbers (High-Contrast Black & Deep Slate) */
 html[data-theme="light"] .ad-card .tbl td,
 html[data-theme="light"] .tbl td {
-  color: #1E293B !important;
-  border-bottom: 1px solid #F1F5F9 !important;
+  color: #0F172A !important;
 }
 
-/* Worker Name in Bold Black */
+html[data-theme="light"] .ad-card .tbl .name,
+html[data-theme="light"] .tbl .name,
+html[data-theme="light"] .ad-card .tbl td.name,
+html[data-theme="light"] .tbl td.name,
 html[data-theme="light"] .ad-card .tbl td.td-worker-name,
-html[data-theme="light"] .tbl td.td-worker-name,
-html[data-theme="light"] .tbl td.name {
+html[data-theme="light"] .tbl td.td-worker-name {
   color: #000000 !important;
+  font-weight: 800 !important;
+  font-size: 14.5px !important;
+}
+
+html[data-theme="light"] .ad-card .tbl .dep,
+html[data-theme="light"] .tbl .dep {
+  color: #475569 !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme="light"] .ad-card .tbl td.num,
+html[data-theme="light"] .tbl td.num {
+  color: #0F172A !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme="light"] .ad-card .tbl td strong,
+html[data-theme="light"] .tbl td strong {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+/* Table Row Action Link */
+html[data-theme="light"] .ad-card .tbl .rowlink,
+html[data-theme="light"] .tbl .rowlink {
+  background: #EFF6FF !important;
+  border: 1px solid #BFDBFE !important;
+  color: #0284C7 !important;
   font-weight: 700 !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+}
+html[data-theme="light"] .ad-card .tbl .rowlink:hover,
+html[data-theme="light"] .tbl .rowlink:hover {
+  background: #0284C7 !important;
+  color: #FFFFFF !important;
+  border-color: #0284C7 !important;
 }
 
-html[data-theme="light"] .ad-card .tbl tbody tr:hover,
-html[data-theme="light"] .tbl tbody tr:hover {
-  background: rgba(56, 189, 248, 0.08) !important;
-}
-
-/* Coloured Texts in Required Places (Status Numbers, Totals, Badges) */
+/* Coloured Status Values in Tables */
 html[data-theme="light"] .td-present,
 html[data-theme="light"] .pct-good {
   color: #059669 !important;
@@ -6843,8 +6935,9 @@ html[data-theme="light"] .td-total-cost {
 /* Totals Footer Row */
 html[data-theme="light"] .ad-card .tbl .totals-row td,
 html[data-theme="light"] .tbl .totals-row td,
-html[data-theme="light"] .month-tbl tfoot td {
-  background: #F8FAFC !important;
+html[data-theme="light"] .month-tbl tfoot td,
+html[data-theme="light"] .ad-card .tbl tfoot td {
+  background: #F1F5F9 !important;
   color: #000000 !important;
   border-top: 2px solid #CBD5E1 !important;
   font-weight: 800 !important;
@@ -6908,9 +7001,10 @@ html[data-theme="light"] .btn.ghost:hover {
 }
 
 /* ========================================================================
-   SUPERVISOR PORTAL (White Roster Cards & High-Contrast Segmented Controls)
+   SUPERVISOR PORTAL (Fix All White-on-White Texts & Image 2 Row Styling)
    ======================================================================== */
-html[data-theme="light"] .sv-roster-card {
+html[data-theme="light"] .sv-roster-card,
+html[data-theme="light"] .sv-page .sv-roster-card {
   background: #FFFFFF !important;
   border: 1px solid rgba(56, 189, 248, 0.35) !important;
   box-shadow: 
@@ -6919,65 +7013,308 @@ html[data-theme="light"] .sv-roster-card {
   color: #000000 !important;
 }
 
-html[data-theme="light"] .sv-search-wrap {
-  background: #F8FAFC !important;
-  border: 1px solid #CBD5E1 !important;
+/* Supervisor Stat Numbers in Solid Black */
+html[data-theme="light"] .sv-stat,
+html[data-theme="light"] .sv-page .sv-stat {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.3), 0 0 20px -2px rgba(56, 189, 248, 0.25) !important;
 }
-html[data-theme="light"] .sv-search-input {
+html[data-theme="light"] .sv-stat-num,
+html[data-theme="light"] .sv-page .sv-stat-num {
   color: #000000 !important;
+  font-weight: 900 !important;
+  font-size: 36px !important;
+  text-shadow: none !important;
 }
-html[data-theme="light"] .sv-search-input::placeholder {
-  color: #94A3B8 !important;
-}
-html[data-theme="light"] .sv-search-icon {
+html[data-theme="light"] .sv-stat-num span,
+html[data-theme="light"] .sv-page .sv-stat-num span {
   color: #64748B !important;
+  font-weight: 600 !important;
+}
+html[data-theme="light"] .sv-stat-label,
+html[data-theme="light"] .sv-page .sv-stat-label {
+  color: #475569 !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  text-shadow: none !important;
 }
 
-html[data-theme="light"] .sv-row {
+/* Daily Roster Title & Subtitle in Solid Black */
+html[data-theme="light"] .sv-roster-title,
+html[data-theme="light"] .sv-page .sv-roster-title {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  font-weight: 800 !important;
+  font-size: 24px !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] .sv-roster-sub,
+html[data-theme="light"] .sv-page .sv-roster-sub {
+  color: #475569 !important;
+  font-weight: 500 !important;
+}
+
+/* Search Box in Supervisor Portal */
+html[data-theme="light"] .sv-search-wrap,
+html[data-theme="light"] .sv-page .sv-search-wrap {
+  background: #F8FAFC !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+html[data-theme="light"] .sv-search,
+html[data-theme="light"] .sv-page .sv-search {
+  color: #000000 !important;
+  background: transparent !important;
+}
+html[data-theme="light"] .sv-search::placeholder,
+html[data-theme="light"] .sv-page .sv-search::placeholder {
+  color: #64748B !important;
+}
+html[data-theme="light"] .sv-search-icon,
+html[data-theme="light"] .sv-page .sv-search-icon {
+  color: #475569 !important;
+}
+
+/* Filter Chips in Supervisor Portal */
+html[data-theme="light"] .sv-chip,
+html[data-theme="light"] .sv-page .sv-chip {
+  background: #F1F5F9 !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+html[data-theme="light"] .sv-chip:hover,
+html[data-theme="light"] .sv-page .sv-chip:hover {
+  background: #E2E8F0 !important;
+  color: #000000 !important;
+}
+html[data-theme="light"] .sv-chip.active,
+html[data-theme="light"] .sv-page .sv-chip.active {
+  background: #0284C7 !important;
+  border-color: #0284C7 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+/* ========================================================================
+   SUPERVISOR DAILY ROSTER ROWS (Image 2 style: Distinct Progressive Shades)
+   ======================================================================== */
+html[data-theme="light"] .sv-page .sv-row {
+  margin-bottom: 12px !important;
+  border-radius: 16px !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Tier 1 (odd-1) */
+html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 1) {
   background: #FFFFFF !important;
   border: 1px solid #E2E8F0 !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03) !important;
+  border-left: 6px solid #1E40AF !important; /* Deep Ocean Accent */
+  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04) !important;
 }
-html[data-theme="light"] .sv-row:hover {
-  background: #F8FAFC !important;
-  border-color: #93C5FD !important;
-  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.12) !important;
+html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 1) .sv-avatar {
+  background: #1E40AF !important;
+  color: #FFFFFF !important;
+  border: 1px solid #1E3A8A !important;
+  box-shadow: 0 3px 10px rgba(30, 64, 175, 0.35) !important;
 }
-html[data-theme="light"] .sv-worker-name {
+
+/* Tier 2 (even-1) */
+html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 2) {
+  background: #F8FAFD !important; /* Soft porcelain tint */
+  border: 1px solid #E2E8F0 !important;
+  border-left: 6px solid #9A8262 !important; /* Warm Taupe / Sand Accent */
+  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 2) .sv-avatar {
+  background: #9A8262 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #78644A !important;
+  box-shadow: 0 3px 10px rgba(154, 130, 98, 0.35) !important;
+}
+
+/* Tier 3 (odd-2) */
+html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 3) {
+  background: #F2F6FA !important; /* Gentle slate tint */
+  border: 1px solid #E2E8F0 !important;
+  border-left: 6px solid #6E6259 !important; /* Earth Slate Accent */
+  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 3) .sv-avatar {
+  background: #6E6259 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #52473F !important;
+  box-shadow: 0 3px 10px rgba(110, 98, 89, 0.35) !important;
+}
+
+/* Tier 4 (even-2) */
+html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 4) {
+  background: #EAF0F7 !important; /* Deeper contrast tint */
+  border: 1px solid #E2E8F0 !important;
+  border-left: 6px solid #363636 !important; /* Charcoal Accent */
+  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 4) .sv-avatar {
+  background: #363636 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #1F2937 !important;
+  box-shadow: 0 3px 10px rgba(54, 54, 54, 0.35) !important;
+}
+
+/* Row Hover State */
+html[data-theme="light"] .sv-page .sv-row:hover {
+  background: #E0EFFF !important;
+  border-color: #38BDF8 !important;
+  border-left-color: #0284C7 !important;
+  box-shadow: 0 8px 24px -4px rgba(2, 132, 199, 0.22), 0 0 16px rgba(56, 189, 248, 0.25) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Worker Name in Daily Roster in Solid Black */
+html[data-theme="light"] .sv-row-name,
+html[data-theme="light"] .sv-page .sv-row-name,
+html[data-theme="light"] .sv-name-text,
+html[data-theme="light"] .sv-page .sv-name-text {
+  color: #000000 !important;
+  font-weight: 800 !important;
+  font-size: 16px !important;
+}
+
+/* Metadata Tags in Daily Roster */
+html[data-theme="light"] .sv-dept-tag,
+html[data-theme="light"] .sv-page .sv-dept-tag {
+  background: #EFF6FF !important;
+  color: #1D4ED8 !important;
+  border: 1px solid #BFDBFE !important;
+  font-weight: 600 !important;
+  padding: 3px 8px !important;
+  border-radius: 6px !important;
+}
+html[data-theme="light"] .sv-id-tag,
+html[data-theme="light"] .sv-page .sv-id-tag {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+html[data-theme="light"] .sv-desig-tag,
+html[data-theme="light"] .sv-page .sv-desig-tag {
+  background: #F1F5F9 !important;
+  color: #475569 !important;
+  border: 1px solid #E2E8F0 !important;
+  padding: 3px 8px !important;
+  border-radius: 6px !important;
+}
+
+/* Status Mark Pills in Roster */
+html[data-theme="light"] .sv-mark.present,
+html[data-theme="light"] .sv-page .sv-mark.present {
+  background: #ECFDF5 !important;
+  color: #059669 !important;
+  border: 1px solid #A7F3D0 !important;
+  font-weight: 700 !important;
+}
+html[data-theme="light"] .sv-mark.late,
+html[data-theme="light"] .sv-page .sv-mark.late {
+  background: #FFFBEB !important;
+  color: #D97706 !important;
+  border: 1px solid #FDE68A !important;
+  font-weight: 700 !important;
+}
+html[data-theme="light"] .sv-mark.absent,
+html[data-theme="light"] .sv-page .sv-mark.absent {
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+  border: 1px solid #FECACA !important;
+  font-weight: 700 !important;
+}
+
+/* Time IN / OUT Boxes in Supervisor Portal */
+html[data-theme="light"] .sv-time-cols .sv-time-col,
+html[data-theme="light"] .sv-page .sv-time-col {
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+}
+html[data-theme="light"] .sv-time-label,
+html[data-theme="light"] .sv-page .sv-time-label {
+  color: #64748B !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .sv-time-val,
+html[data-theme="light"] .sv-page .sv-time-val {
   color: #000000 !important;
   font-weight: 700 !important;
 }
-html[data-theme="light"] .sv-meta-badge {
+html[data-theme="light"] .sv-time-val.filled,
+html[data-theme="light"] .sv-page .sv-time-val.filled {
+  color: #0284C7 !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+
+/* Segmented Action Buttons in Supervisor Portal */
+html[data-theme="light"] .sv-seg,
+html[data-theme="light"] .sv-page .sv-seg {
   background: #F1F5F9 !important;
-  color: #475569 !important;
   border: 1px solid #CBD5E1 !important;
 }
-html[data-theme="light"] .sv-seg {
-  background: #F1F5F9 !important;
-  border: 1px solid #CBD5E1 !important;
-}
-html[data-theme="light"] .sv-seg button {
-  color: #475569 !important;
+html[data-theme="light"] .sv-seg button,
+html[data-theme="light"] .sv-page .sv-seg button {
+  color: #334155 !important;
   font-weight: 700 !important;
+  background: transparent !important;
 }
-html[data-theme="light"] .sv-seg button:hover {
-  background: rgba(0, 0, 0, 0.05) !important;
+html[data-theme="light"] .sv-seg button:hover,
+html[data-theme="light"] .sv-page .sv-seg button:hover {
+  background: #E2E8F0 !important;
   color: #000000 !important;
 }
-html[data-theme="light"] .sv-seg button.on-p {
-  background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
+html[data-theme="light"] .sv-seg button.on-p,
+html[data-theme="light"] .sv-page .sv-seg button.on-p {
+  background: #059669 !important;
   color: #FFFFFF !important;
-  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4) !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.4) !important;
 }
-html[data-theme="light"] .sv-seg button.on-l {
-  background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%) !important;
+html[data-theme="light"] .sv-seg button.on-l,
+html[data-theme="light"] .sv-page .sv-seg button.on-l {
+  background: #D97706 !important;
   color: #FFFFFF !important;
-  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4) !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4) !important;
 }
-html[data-theme="light"] .sv-seg button.on-a {
-  background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%) !important;
+html[data-theme="light"] .sv-seg button.on-a,
+html[data-theme="light"] .sv-page .sv-seg button.on-a {
+  background: #DC2626 !important;
   color: #FFFFFF !important;
-  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4) !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4) !important;
+}
+
+/* Shift Info Bar in Supervisor Portal */
+html[data-theme="light"] .sv-shift-bar,
+html[data-theme="light"] .sv-page .sv-shift-bar {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  color: #334155 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+}
+html[data-theme="light"] .sv-shift-bar strong,
+html[data-theme="light"] .sv-page .sv-shift-bar strong {
+  color: #0284C7 !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] .sv-shift-sep,
+html[data-theme="light"] .sv-page .sv-shift-sep {
+  color: #CBD5E1 !important;
+}
+html[data-theme="light"] .sv-shift-edit-btn,
+html[data-theme="light"] .sv-page .sv-shift-edit-btn {
+  background: #EFF6FF !important;
+  border: 1px solid #BFDBFE !important;
+  color: #0284C7 !important;
+  font-weight: 700 !important;
 }
 
 html[data-theme="light"] .sv-duty-text { color: #0284C7 !important; font-weight: 700 !important; }
@@ -7081,6 +7418,7 @@ html[data-theme="light"] .cal-day.is-h {
   border-color: #BFDBFE !important;
   color: #1E40AF !important;
 }
+
 
 
 
