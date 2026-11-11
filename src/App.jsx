@@ -30,8 +30,15 @@ function Guard({ role, me, children }) {
 
 export default function App() {
   const { me, setMe, signOut } = useAuth();
-  const [dark, setDark] = useState(() => localStorage.getItem('wt-theme') === 'dark');
-  const toggleTheme = () => setDark((d) => { const v = !d; localStorage.setItem('wt-theme', v ? 'dark' : 'light'); return v; });
+  const [dark, setDark] = useState(() => {
+    const saved = localStorage.getItem('wt-theme');
+    return saved !== null ? saved === 'dark' : true;
+  });
+  const toggleTheme = () => setDark((d) => {
+    const v = !d;
+    localStorage.setItem('wt-theme', v ? 'dark' : 'light');
+    return v;
+  });
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
