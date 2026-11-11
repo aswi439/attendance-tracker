@@ -241,9 +241,9 @@ export default function Supervisor({ me, onSignOut }) {
     <div className="page dash-premium sv-page">
       <div className="dash-bg" aria-hidden="true">
         <GlassFold
-          color1={dark ? "#1e3cc8" : "#c7d2fe"}
-          color2={dark ? "#06081e" : "#f8fafc"}
-          color3={dark ? "#96d7ff" : "#bae6fd"}
+          color1="#1e3cc8"
+          color2="#06081e"
+          color3="#96d7ff"
           speed={0.4}
           scale={1}
           noise={0.08}

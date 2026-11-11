@@ -6313,134 +6313,121 @@ html[data-theme="dark"] .dash-premium .topbar::after {
 }
 
 /* ========================================================================
-   LUXURY LIGHT THEME SUITE (Inspired by Reference Visuals)
-   Clean, luminous porcelain, delicate gradients, and elegant crystal glass
+   LIGHT THEME SUITE — CRISP WHITE CARDS & GLOWING BORDERS REALISM
+   (Preserves background live animation, menu bar design/animation,
+    and multiple categorized table header colors from dark theme)
    ======================================================================== */
 
 html[data-theme="light"] {
   color-scheme: light;
-  --bg: #F4F6FC;
+  --bg: #070d19;
   --white: #FFFFFF;
-  --color-background: #F4F6FC;
+  --color-background: #070d19;
   --color-foreground: #0F172A;
   --color-card: #FFFFFF;
   --color-card-foreground: #0F172A;
   --color-muted: #F1F5F9;
   --color-muted-foreground: #64748B;
-  --color-border: #E2E8F0;
-  --color-ring: #2563EB;
+  --color-border: rgba(56, 189, 248, 0.35);
+  --color-ring: #0284C7;
 }
 
+/* Retain the rich, unobstructed live background canvas (no white layer over live animation) */
 html[data-theme="light"] body {
-  background-color: #F4F6FC !important;
-  color: #0F172A !important;
+  background-color: transparent !important;
+  color: #0F172A;
 }
 
-/* Background canvas and grid */
+/* Ensure live canvas and grid remain pure dark and luminous */
 html[data-theme="light"] .dash-bg {
-  background: radial-gradient(120% 100% at 50% 0%, #EEF4FD 0%, #F4F6FC 55%, #F8FAFD 100%) !important;
+  background: transparent !important;
 }
 
 html[data-theme="light"] .grid-bg {
-  background-image: 
-    linear-gradient(rgba(37, 99, 235, 0.04) 1px, transparent 1px), 
-    linear-gradient(90deg, rgba(37, 99, 235, 0.04) 1px, transparent 1px) !important;
-}
-
-/* Floating 3D Orbs in Light Mode: Pearlescent, soft, translucent */
-html[data-theme="light"] .ad-page .ad-orb-1 {
-  background: radial-gradient(circle at 35% 30%, #FFFFFF 0%, #E0F2FE 35%, #BAE6FD 75%, #60A5FA 100%) !important;
-  box-shadow: 0 16px 32px -4px rgba(37, 99, 235, 0.16), inset 0 -3px 8px rgba(255, 255, 255, 0.8) !important;
-  opacity: 0.85 !important;
-}
-html[data-theme="light"] .ad-page .ad-orb-2 {
-  background: radial-gradient(circle at 35% 30%, #FFFFFF 0%, #F5F3FF 35%, #DDD6FE 80%, #A78BFA 100%) !important;
-  box-shadow: 0 10px 22px -2px rgba(167, 139, 250, 0.15) !important;
   opacity: 0.8 !important;
-}
-html[data-theme="light"] .ad-page .ad-orb-3 {
-  background: radial-gradient(circle at 32% 28%, #FFFFFF 0%, #EFF6FF 35%, #BFDBFE 75%, #3B82F6 100%) !important;
-  box-shadow: 0 20px 40px -6px rgba(59, 130, 246, 0.16), inset 0 -5px 12px rgba(255, 255, 255, 0.8) !important;
-  opacity: 0.85 !important;
-}
-html[data-theme="light"] .ad-page .ad-orb-4 {
-  background: radial-gradient(circle at 35% 30%, #FFFFFF 0%, #E0F2FE 50%, #38BDF8 100%) !important;
-  box-shadow: 0 8px 18px -2px rgba(56, 189, 248, 0.18) !important;
-  opacity: 0.8 !important;
-}
-html[data-theme="light"] .ad-page .ad-orb-5 {
-  background: radial-gradient(circle at 35% 30%, #FFFFFF 0%, #FEF3C7 45%, #FDE68A 85%, #F59E0B 100%) !important;
-  box-shadow: 0 12px 24px -4px rgba(245, 158, 11, 0.14) !important;
-  opacity: 0.75 !important;
-}
-html[data-theme="light"] .ad-page .ad-orb-6 {
-  background: radial-gradient(circle at 35% 30%, #FFFFFF 0%, #F1F5F9 45%, #CBD5E1 90%, #94A3B8 100%) !important;
-  box-shadow: 0 8px 18px -2px rgba(148, 163, 184, 0.15) !important;
-  opacity: 0.75 !important;
 }
 
 /* Page Containers */
 html[data-theme="light"] .ad-page,
 html[data-theme="light"] .sv-page,
 html[data-theme="light"] .worker-detail-page {
-  color: #0F172A !important;
+  color: #0F172A;
 }
 
-/* Top-Right Action Controls in Light Mode */
+/* Welcome greetings sitting over live background animation */
+html[data-theme="light"] .ad-greeting,
+html[data-theme="light"] .sv-greeting {
+  color: #FFFFFF !important;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.7) !important;
+}
+
+html[data-theme="light"] .ad-date,
+html[data-theme="light"] .sv-date-label {
+  color: #93C5FD !important;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Top-Right Action Controls (Theme Toggle & Sign Out) */
 html[data-theme="light"] .top-theme-btn {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(226, 232, 240, 0.95) !important;
-  color: #2563EB !important;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+  background: rgba(15, 23, 42, 0.75) !important;
+  backdrop-filter: blur(16px) !important;
+  border-color: rgba(56, 189, 248, 0.45) !important;
+  color: #38BDF8 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 16px rgba(56, 189, 248, 0.25) !important;
 }
 html[data-theme="light"] .top-theme-btn:hover {
-  background: #EFF6FF !important;
-  border-color: #93C5FD !important;
-  color: #1D4ED8 !important;
-  box-shadow: 0 0 18px rgba(37, 99, 235, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+  background: rgba(30, 41, 59, 0.9) !important;
+  border-color: #38BDF8 !important;
+  color: #67E8F9 !important;
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.5) !important;
   transform: translateY(-1px) rotate(-15deg) !important;
 }
 html[data-theme="light"] .top-signout-btn {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(226, 232, 240, 0.95) !important;
-  color: #334155 !important;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+  background: rgba(15, 23, 42, 0.75) !important;
+  backdrop-filter: blur(16px) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #F1F5F9 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
 }
 html[data-theme="light"] .top-signout-btn:hover {
-  background: #FEF2F2 !important;
-  border-color: #FECACA !important;
-  color: #DC2626 !important;
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.15) !important;
+  background: rgba(220, 38, 38, 0.2) !important;
+  border-color: rgba(248, 113, 113, 0.5) !important;
+  color: #F87171 !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3) !important;
 }
 
 /* Floating Glass Headers */
 html[data-theme="light"] .ad-header,
 html[data-theme="light"] .sv-header,
 html[data-theme="light"] .track-header {
-  background: rgba(255, 255, 255, 0.88) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
   backdrop-filter: blur(28px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
-  border: 1px solid rgba(226, 232, 240, 0.9) !important;
-  box-shadow: 0 12px 32px -6px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 
+    0 16px 40px -8px rgba(0, 0, 0, 0.4),
+    0 0 24px -2px rgba(56, 189, 248, 0.25),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.9) !important;
 }
 
 html[data-theme="light"] .ad-header-title,
 html[data-theme="light"] .sv-header-title {
-  color: #0F172A !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
   text-shadow: none !important;
 }
 
 html[data-theme="light"] .ad-header-sub,
 html[data-theme="light"] .sv-header-sub {
-  color: #64748B !important;
+  color: #475569 !important;
 }
 
 html[data-theme="light"] .ad-logo,
 html[data-theme="light"] .sv-logo {
-  background: linear-gradient(135deg, #EFF6FF, #DBEAFE) !important;
-  border: 1px solid #BFDBFE !important;
-  color: #2563EB !important;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15) !important;
+  background: linear-gradient(135deg, #0050C8, #0284C7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.45) !important;
 }
 
 /* Dropdown Selectors */
@@ -6491,93 +6478,184 @@ html[data-theme="light"] .ad-btn-export-xlsx:hover {
   color: #1D4ED8 !important;
 }
 
-/* Bento Stat Cards in Light Mode */
+/* ========================================================================
+   BENTO STAT CARDS (White Theme with Glowing Colored Borders & Halos)
+   ======================================================================== */
 html[data-theme="light"] .ad-stat,
 html[data-theme="light"] .sv-stat {
-  background: rgba(255, 255, 255, 0.94) !important;
-  border: 1px solid rgba(226, 232, 240, 0.9) !important;
-  box-shadow: 0 10px 28px -4px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(255, 255, 255, 0.9) !important;
-  color: #0F172A !important;
-}
-html[data-theme="light"] .ad-stat:hover,
-html[data-theme="light"] .sv-stat:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(255, 255, 255, 1) !important;
-  border-color: #CBD5E1 !important;
+  background: #FFFFFF !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 
+    0 16px 40px -8px rgba(0, 0, 0, 0.35),
+    0 0 24px -2px rgba(56, 189, 248, 0.25),
+    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.9) !important;
+  color: #000000 !important;
 }
 
+html[data-theme="light"] .ad-stat:hover,
+html[data-theme="light"] .sv-stat:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 
+    0 22px 50px rgba(0, 0, 0, 0.45),
+    0 0 32px rgba(56, 189, 248, 0.45),
+    inset 0 1px 1.5px 0 rgba(255, 255, 255, 1) !important;
+  border-color: #38BDF8 !important;
+}
+
+/* Glowing Top Accent Bars on Bento Stat Cards */
+html[data-theme="light"] .ad-stat::before,
+html[data-theme="light"] .sv-stat::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 4px !important;
+  border-radius: 20px 20px 0 0 !important;
+  background: linear-gradient(90deg, #0050C8, #38BDF8) !important;
+  box-shadow: 0 0 14px #38BDF8 !important;
+}
+
+html[data-theme="light"] .ad-stat-workforce::before {
+  background: linear-gradient(90deg, #0050C8, #38BDF8) !important;
+  box-shadow: 0 0 16px #38BDF8 !important;
+}
+html[data-theme="light"] .ad-stat-attendance::before {
+  background: linear-gradient(90deg, #4F46E5, #818CF8) !important;
+  box-shadow: 0 0 16px #818CF8 !important;
+}
+html[data-theme="light"] .ad-stat-payroll::before {
+  background: linear-gradient(90deg, #059669, #34D399) !important;
+  box-shadow: 0 0 16px #34D399 !important;
+}
+html[data-theme="light"] .ad-stat-ot::before {
+  background: linear-gradient(90deg, #D97706, #FBBF24) !important;
+  box-shadow: 0 0 16px #FBBF24 !important;
+}
+html[data-theme="light"] .ad-stat-medical::before,
+html[data-theme="light"] .ad-stat-warn::before {
+  background: linear-gradient(90deg, #DC2626, #F87171) !important;
+  box-shadow: 0 0 16px #F87171 !important;
+}
+html[data-theme="light"] .ad-stat-emergency::before {
+  background: linear-gradient(90deg, #EA580C, #F97316) !important;
+  box-shadow: 0 0 16px #F97316 !important;
+}
+
+/* Stat numbers and labels */
 html[data-theme="light"] .ad-stat-label,
 html[data-theme="light"] .sv-stat-lbl {
   color: #64748B !important;
+  font-weight: 700 !important;
   text-shadow: none !important;
 }
 
-html[data-theme="light"] .ad-stat-value,
+html[data-theme="light"] .ad-stat-num,
 html[data-theme="light"] .sv-stat-val {
-  color: #0F172A !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
   text-shadow: none !important;
 }
 
 html[data-theme="light"] .ad-stat-sub,
 html[data-theme="light"] .ad-stat-meta {
-  color: #64748B !important;
+  color: #475569 !important;
 }
 
-/* Stat Card Accents */
-html[data-theme="light"] .ad-stat-workforce .ad-stat-blob {
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, transparent 70%) !important;
-}
-html[data-theme="light"] .ad-stat-attendance .ad-stat-blob {
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%) !important;
-}
-html[data-theme="light"] .ad-stat-payroll .ad-stat-blob {
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.14) 0%, transparent 70%) !important;
-}
-html[data-theme="light"] .ad-stat-ot .ad-stat-blob {
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.14) 0%, transparent 70%) !important;
-}
-html[data-theme="light"] .ad-stat-medical .ad-stat-blob {
-  background: radial-gradient(circle, rgba(244, 63, 94, 0.12) 0%, transparent 70%) !important;
-}
-html[data-theme="light"] .ad-stat-emergency .ad-stat-blob {
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, transparent 70%) !important;
+/* Glowing Stat Icons */
+html[data-theme="light"] .ad-stat-icon,
+html[data-theme="light"] .sv-stat-icon {
+  background: rgba(56, 189, 248, 0.12) !important;
+  color: #0284C7 !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.25) !important;
 }
 
-/* Main Container Card Wrappers & Shiny Borders Realism */
+html[data-theme="light"] .ad-stat-warn .ad-stat-icon {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #DC2626 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.25) !important;
+}
+
+html[data-theme="light"] .ad-stat-orange .ad-stat-icon {
+  background: rgba(245, 158, 11, 0.12) !important;
+  color: #D97706 !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.25) !important;
+}
+
+/* ========================================================================
+   MAIN CONTAINER CARDS (White Theme & Shiny Radiant Glowing Borders)
+   ======================================================================== */
 html[data-theme="light"] .ad-card-wrapper {
-  box-shadow: 0 16px 44px -8px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(226, 232, 240, 0.8) !important;
+  background: radial-gradient(circle 650px at 80% -10%, #ffffff 0%, rgba(56, 189, 248, 0.85) 35%, rgba(0, 80, 200, 0.6) 65%, rgba(255, 255, 255, 0.35) 100%) !important;
+  box-shadow: 
+    0 24px 64px -12px rgba(0, 0, 0, 0.65),
+    0 0 35px -5px rgba(56, 189, 248, 0.5),
+    0 0 20px -2px rgba(255, 255, 255, 0.4) !important;
 }
 
 html[data-theme="light"] .ad-card-border-glow {
-  background: radial-gradient(circle 650px at 80% -10%, #FFFFFF 0%, rgba(191, 219, 254, 0.5) 35%, rgba(224, 231, 255, 0.35) 65%, rgba(255, 255, 255, 0.3) 100%) !important;
-  opacity: 0.95 !important;
+  background: radial-gradient(circle 650px at 80% -10%, rgba(255, 255, 255, 0.7), rgba(56, 189, 248, 0.65) 35%, transparent 70%) !important;
+  filter: blur(10px) !important;
+  opacity: 0.85 !important;
 }
 
+html[data-theme="light"] .ad-card-wrapper:hover .ad-card-border-glow {
+  opacity: 1 !important;
+  filter: blur(14px) !important;
+}
+
+/* Inner Card Body */
 html[data-theme="light"] .ad-card {
-  background: rgba(255, 255, 255, 0.96) !important;
-  backdrop-filter: blur(28px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
-  border: 1px solid rgba(226, 232, 240, 0.9) !important;
-  color: #0F172A !important;
+  background: #FFFFFF !important;
+  backdrop-filter: blur(32px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.9),
+    0 0 24px rgba(56, 189, 248, 0.12) !important;
+  color: #000000 !important;
 }
 
+/* Headings in Jet Black */
 html[data-theme="light"] .ad-card-head h2,
-html[data-theme="light"] .card-head h2 {
-  color: #0F172A !important;
+html[data-theme="light"] .card-head h2,
+html[data-theme="light"] .ad-card-title,
+html[data-theme="light"] .ad-section-title {
+  color: #000000 !important;
+  font-weight: 800 !important;
 }
 
 html[data-theme="light"] .ad-card-head p,
 html[data-theme="light"] .ad-card-head .sub,
-html[data-theme="light"] .card-head .sub {
-  color: #64748B !important;
+html[data-theme="light"] .card-head .sub,
+html[data-theme="light"] .ad-card-sub {
+  color: #475569 !important;
+  font-weight: 500 !important;
 }
 
 html[data-theme="light"] .ad-card-shine-line {
-  background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.35), transparent) !important;
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.65), transparent) !important;
 }
 
-html[data-theme="light"] .ad-card-corner-blob {
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%) !important;
+/* Shift & Break Configuration Section */
+html[data-theme="light"] .sc-item {
+  background: #F8FAFC !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.12), inset 0 1px 1px #FFFFFF !important;
+}
+
+html[data-theme="light"] .sc-label {
+  color: #475569 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .sc-val {
+  color: #000000 !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
 }
 
 /* Filter Chips */
@@ -6585,67 +6663,197 @@ html[data-theme="light"] .ad-filter-chip,
 html[data-theme="light"] .sv-pill,
 html[data-theme="light"] .filter-chip {
   background: #F1F5F9 !important;
-  border: 1px solid #E2E8F0 !important;
-  color: #475569 !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
 }
 html[data-theme="light"] .ad-filter-chip:hover,
 html[data-theme="light"] .sv-pill:hover,
 html[data-theme="light"] .filter-chip:hover {
   background: #E2E8F0 !important;
-  color: #0F172A !important;
-  border-color: #CBD5E1 !important;
+  color: #000000 !important;
+  border-color: #94A3B8 !important;
 }
 html[data-theme="light"] .ad-filter-chip.active,
 html[data-theme="light"] .sv-pill.active,
 html[data-theme="light"] .filter-chip.active {
-  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
   color: #FFFFFF !important;
-  border-color: #2563EB !important;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28) !important;
+  border-color: #38BDF8 !important;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.35) !important;
 }
 
-/* Tables in Light Mode */
+/* ========================================================================
+   TABLES & MULTIPLE COLORED HEADINGS (Retained from Dark Theme)
+   ======================================================================== */
 html[data-theme="light"] .ad-table-container {
   background: #FFFFFF !important;
   border: 1px solid #E2E8F0 !important;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03) !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
 }
 
 html[data-theme="light"] .ad-card .tbl th,
 html[data-theme="light"] .tbl th {
-  background: #F8FAFC !important;
-  color: #475569 !important;
+  background: #FFFFFF !important;
   border-bottom: 2px solid #E2E8F0 !important;
 }
 
+/* 1. Worker Identity & Info Headers (Black / Deep Slate) */
+html[data-theme="light"] .ad-card .tbl th.th-col-worker,
+html[data-theme="light"] .ad-card .tbl th.th-col-type,
+html[data-theme="light"] .ad-card .tbl th.th-col-desig,
+html[data-theme="light"] .ad-card .tbl th.th-col-id,
+html[data-theme="light"] .ad-card .tbl th.th-col-doj,
+html[data-theme="light"] .ad-card .tbl th.th-col-name,
+html[data-theme="light"] .th-info {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+/* 2. Attendance & Work Hours Columns (Electric Sky Blue) */
+html[data-theme="light"] .ad-card .tbl th.th-col-present,
+html[data-theme="light"] .th-attendance {
+  color: #0284C7 !important;
+  font-weight: 800 !important;
+  text-shadow: 0 0 8px rgba(2, 132, 199, 0.25) !important;
+}
+html[data-theme="light"] .ad-card .tbl th.th-col-hours {
+  color: #0891B2 !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .ad-card .tbl th.th-col-avg {
+  color: #0284C7 !important;
+  font-weight: 800 !important;
+}
+
+/* 3. Wage & Pay Columns (Vibrant Emerald Green) */
+html[data-theme="light"] .ad-card .tbl th.th-col-wage,
+html[data-theme="light"] .ad-card .tbl th.th-col-wage-total,
+html[data-theme="light"] .th-wages {
+  color: #059669 !important;
+  font-weight: 800 !important;
+  text-shadow: 0 0 8px rgba(5, 150, 105, 0.25) !important;
+}
+
+/* 4. Allowances & Operational Overhead Columns (Warm Amber Gold) */
+html[data-theme="light"] .ad-card .tbl th.th-col-overhead,
+html[data-theme="light"] .th-expenses {
+  color: #D97706 !important;
+  font-weight: 800 !important;
+}
+
+/* 5. Total Cost Column (Radiant Royal Blue with Soft Blue Background) */
+html[data-theme="light"] .ad-card .tbl th.th-col-cost-total,
+html[data-theme="light"] .th-total {
+  color: #1D4ED8 !important;
+  font-weight: 900 !important;
+  background: rgba(219, 234, 254, 0.6) !important;
+  border-bottom: 2px solid #3B82F6 !important;
+}
+
+/* 6. Dashboard Specific Columns & Leave Columns */
+html[data-theme="light"] .ad-card .tbl th.th-col-late {
+  color: #D97706 !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .ad-card .tbl th.th-col-absent {
+  color: #DC2626 !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .ad-card .tbl th.th-col-ml {
+  color: #DC2626 !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .ad-card .tbl th.th-col-emergency {
+  color: #EA580C !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .ad-card .tbl th.th-col-workRelated {
+  color: #7C3AED !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .ad-card .tbl th.th-col-casual {
+  color: #D97706 !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .ad-card .tbl th.th-col-unpaid {
+  color: #64748B !important;
+  font-weight: 700 !important;
+}
+html[data-theme="light"] .ad-card .tbl th.th-col-unspecified {
+  color: #0D9488 !important;
+  font-weight: 800 !important;
+}
+
+/* Table Body Rows */
 html[data-theme="light"] .ad-card .tbl td,
 html[data-theme="light"] .tbl td {
   color: #1E293B !important;
   border-bottom: 1px solid #F1F5F9 !important;
 }
 
-html[data-theme="light"] .ad-card .tbl tbody tr:hover,
-html[data-theme="light"] .tbl tbody tr:hover {
-  background: #F8FAFC !important;
+/* Worker Name in Bold Black */
+html[data-theme="light"] .ad-card .tbl td.td-worker-name,
+html[data-theme="light"] .tbl td.td-worker-name,
+html[data-theme="light"] .tbl td.name {
+  color: #000000 !important;
+  font-weight: 700 !important;
 }
 
+html[data-theme="light"] .ad-card .tbl tbody tr:hover,
+html[data-theme="light"] .tbl tbody tr:hover {
+  background: rgba(56, 189, 248, 0.08) !important;
+}
+
+/* Coloured Texts in Required Places (Status Numbers, Totals, Badges) */
+html[data-theme="light"] .td-present,
+html[data-theme="light"] .pct-good {
+  color: #059669 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .td-late {
+  color: #D97706 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .td-absent,
+html[data-theme="light"] .warn-num {
+  color: #DC2626 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .td-ot,
+html[data-theme="light"] .td-hours {
+  color: #0284C7 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .td-wage,
+html[data-theme="light"] .td-net-pay {
+  color: #059669 !important;
+  font-weight: 700 !important;
+}
+
+html[data-theme="light"] .td-total-cost {
+  color: #1D4ED8 !important;
+  font-weight: 800 !important;
+}
+
+/* Totals Footer Row */
 html[data-theme="light"] .ad-card .tbl .totals-row td,
-html[data-theme="light"] .tbl .totals-row td {
-  background: #F1F5F9 !important;
-  color: #0F172A !important;
+html[data-theme="light"] .tbl .totals-row td,
+html[data-theme="light"] .month-tbl tfoot td {
+  background: #F8FAFC !important;
+  color: #000000 !important;
   border-top: 2px solid #CBD5E1 !important;
   font-weight: 800 !important;
 }
 
-/* Category Table Headers Highlight in Light Mode */
-html[data-theme="light"] .th-info { color: #0F172A !important; }
-html[data-theme="light"] .th-attendance { color: #0284C7 !important; }
-html[data-theme="light"] .th-wages { color: #059669 !important; }
-html[data-theme="light"] .th-expenses { color: #D97706 !important; }
-html[data-theme="light"] .th-total {
+html[data-theme="light"] .ad-card .tbl tfoot tr td.th-col-cost-total {
+  background: rgba(219, 234, 254, 0.7) !important;
   color: #1D4ED8 !important;
-  background: rgba(219, 234, 254, 0.6) !important;
-  border-bottom: 2px solid #3B82F6 !important;
+  font-weight: 900 !important;
 }
 
 /* Badges & Pills */
@@ -6653,50 +6861,62 @@ html[data-theme="light"] .worker-cat-badge.worker {
   background: #EFF6FF !important;
   color: #1D4ED8 !important;
   border: 1px solid #BFDBFE !important;
+  font-weight: 700 !important;
 }
 html[data-theme="light"] .worker-cat-badge.ext {
   background: #FDF4FF !important;
-  color: #A21CAF !important;
-  border: 1px solid #F0ABFC !important;
+  color: #7C3AED !important;
+  border: 1px solid #DDD6FE !important;
+  font-weight: 700 !important;
+}
+html[data-theme="light"] .badge.is-active {
+  background: #ECFDF5 !important;
+  color: #059669 !important;
+  border: 1px solid #A7F3D0 !important;
+  font-weight: 700 !important;
+}
+html[data-theme="light"] .badge.is-inactive {
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+  border: 1px solid #FECACA !important;
+  font-weight: 700 !important;
 }
 
 /* Buttons in Light Mode */
 html[data-theme="light"] .ad-btn-primary,
 html[data-theme="light"] .btn.primary {
   background: radial-gradient(circle 80px at 80% -10%, #FFFFFF, #93C5FD) !important;
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.28) !important;
+  box-shadow: 0 4px 18px rgba(2, 132, 199, 0.35) !important;
 }
 html[data-theme="light"] .ad-btn-primary-inner {
-  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
   color: #FFFFFF !important;
 }
 html[data-theme="light"] .ad-btn-secondary,
 html[data-theme="light"] .btn.secondary,
 html[data-theme="light"] .btn.ghost {
   background: #F1F5F9 !important;
-  border: 1px solid #E2E8F0 !important;
+  border: 1px solid #CBD5E1 !important;
   color: #334155 !important;
+  font-weight: 600 !important;
 }
 html[data-theme="light"] .ad-btn-secondary:hover,
 html[data-theme="light"] .btn.secondary:hover,
 html[data-theme="light"] .btn.ghost:hover {
   background: #E2E8F0 !important;
-  color: #0F172A !important;
+  color: #000000 !important;
 }
 
-/* Supervisor Portal in Light Mode */
-html[data-theme="light"] .sv-greeting {
-  color: #0F172A !important;
-}
-html[data-theme="light"] .sv-date-label {
-  color: #64748B !important;
-}
-
+/* ========================================================================
+   SUPERVISOR PORTAL (White Roster Cards & High-Contrast Segmented Controls)
+   ======================================================================== */
 html[data-theme="light"] .sv-roster-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(226, 232, 240, 0.9) !important;
-  box-shadow: 0 14px 36px -6px rgba(15, 23, 42, 0.05) !important;
-  color: #0F172A !important;
+  background: #FFFFFF !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 
+    0 16px 40px -8px rgba(0, 0, 0, 0.35),
+    0 0 24px -2px rgba(56, 189, 248, 0.25) !important;
+  color: #000000 !important;
 }
 
 html[data-theme="light"] .sv-search-wrap {
@@ -6704,7 +6924,7 @@ html[data-theme="light"] .sv-search-wrap {
   border: 1px solid #CBD5E1 !important;
 }
 html[data-theme="light"] .sv-search-input {
-  color: #0F172A !important;
+  color: #000000 !important;
 }
 html[data-theme="light"] .sv-search-input::placeholder {
   color: #94A3B8 !important;
@@ -6716,122 +6936,130 @@ html[data-theme="light"] .sv-search-icon {
 html[data-theme="light"] .sv-row {
   background: #FFFFFF !important;
   border: 1px solid #E2E8F0 !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02) !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03) !important;
 }
 html[data-theme="light"] .sv-row:hover {
   background: #F8FAFC !important;
-  border-color: #CBD5E1 !important;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+  border-color: #93C5FD !important;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.12) !important;
 }
 html[data-theme="light"] .sv-worker-name {
-  color: #0F172A !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
 }
 html[data-theme="light"] .sv-meta-badge {
   background: #F1F5F9 !important;
   color: #475569 !important;
-  border: 1px solid #E2E8F0 !important;
+  border: 1px solid #CBD5E1 !important;
 }
 html[data-theme="light"] .sv-seg {
   background: #F1F5F9 !important;
-  border: 1px solid #E2E8F0 !important;
+  border: 1px solid #CBD5E1 !important;
 }
 html[data-theme="light"] .sv-seg button {
-  color: #64748B !important;
+  color: #475569 !important;
+  font-weight: 700 !important;
 }
 html[data-theme="light"] .sv-seg button:hover {
-  background: rgba(0, 0, 0, 0.04) !important;
-  color: #0F172A !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #000000 !important;
 }
 html[data-theme="light"] .sv-seg button.on-p {
   background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35) !important;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4) !important;
 }
 html[data-theme="light"] .sv-seg button.on-l {
   background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35) !important;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4) !important;
 }
 html[data-theme="light"] .sv-seg button.on-a {
   background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.35) !important;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4) !important;
 }
 
-html[data-theme="light"] .sv-duty-text { color: #0284C7 !important; }
-html[data-theme="light"] .sv-ot-text { color: #D97706 !important; }
+html[data-theme="light"] .sv-duty-text { color: #0284C7 !important; font-weight: 700 !important; }
+html[data-theme="light"] .sv-ot-text { color: #D97706 !important; font-weight: 700 !important; }
 html[data-theme="light"] .sv-time-in,
-html[data-theme="light"] .sv-time-out { color: #0F172A !important; }
-html[data-theme="light"] .sv-time-lbl { color: #64748B !important; }
+html[data-theme="light"] .sv-time-out { color: #000000 !important; font-weight: 700 !important; }
+html[data-theme="light"] .sv-time-lbl { color: #64748B !important; font-weight: 600 !important; }
 html[data-theme="light"] .sv-time-edit-input {
   background: #FFFFFF !important;
   border: 1px solid #CBD5E1 !important;
-  color: #0F172A !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
 }
 
 html[data-theme="light"] .sv-bottom-summary {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid #E2E8F0 !important;
-  color: #0F172A !important;
-  box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.05) !important;
+  background: #FFFFFF !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  color: #000000 !important;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2), 0 0 16px rgba(56, 189, 248, 0.15) !important;
 }
 
 /* Modals & Dialogs in Light Mode */
 html[data-theme="light"] .ad-modal-backdrop,
 html[data-theme="light"] .sv-modal-backdrop {
-  background: rgba(15, 23, 42, 0.45) !important;
+  background: rgba(15, 23, 42, 0.65) !important;
+  backdrop-filter: blur(8px) !important;
 }
 html[data-theme="light"] .ad-modal,
 html[data-theme="light"] .sv-modal,
 html[data-theme="light"] .modal {
   background: #FFFFFF !important;
-  border: 1px solid #E2E8F0 !important;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.15) !important;
-  color: #0F172A !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(56, 189, 248, 0.3) !important;
+  color: #000000 !important;
 }
 html[data-theme="light"] .ad-modal h2,
 html[data-theme="light"] .sv-modal h2,
 html[data-theme="light"] .modal h2 {
-  color: #0F172A !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
 }
 html[data-theme="light"] .ad-modal p,
 html[data-theme="light"] .sv-modal p,
 html[data-theme="light"] .modal p {
-  color: #64748B !important;
+  color: #475569 !important;
 }
 html[data-theme="light"] .ad-form-input,
 html[data-theme="light"] .ad-form-select,
 html[data-theme="light"] .ad-form-textarea {
   background: #F8FAFC !important;
   border: 1px solid #CBD5E1 !important;
-  color: #0F172A !important;
+  color: #000000 !important;
 }
 
 /* Worker Detail View in Light Mode */
 html[data-theme="light"] .track-back-btn {
-  background: rgba(255, 255, 255, 0.88) !important;
-  border: 1px solid #E2E8F0 !important;
-  color: #334155 !important;
+  background: rgba(15, 23, 42, 0.75) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  color: #E2E8F0 !important;
+  backdrop-filter: blur(12px) !important;
 }
 html[data-theme="light"] .track-back-btn:hover {
-  background: #EFF6FF !important;
-  border-color: #BFDBFE !important;
-  color: #2563EB !important;
+  background: rgba(30, 41, 59, 0.9) !important;
+  border-color: #38BDF8 !important;
+  color: #38BDF8 !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3) !important;
 }
 html[data-theme="light"] .track-header {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border: 1px solid #E2E8F0 !important;
+  background: #FFFFFF !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.4), 0 0 24px rgba(56, 189, 248, 0.25) !important;
 }
 html[data-theme="light"] .track-card {
   background: #FFFFFF !important;
-  border: 1px solid #E2E8F0 !important;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04) !important;
-  color: #0F172A !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.35), 0 0 24px rgba(56, 189, 248, 0.2) !important;
+  color: #000000 !important;
 }
 html[data-theme="light"] .cal-day {
   background: #FFFFFF !important;
-  border: 1px solid #F1F5F9 !important;
-  color: #0F172A !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #000000 !important;
 }
 html[data-theme="light"] .cal-day.is-p {
   background: #ECFDF5 !important;
@@ -6853,6 +7081,7 @@ html[data-theme="light"] .cal-day.is-h {
   border-color: #BFDBFE !important;
   color: #1E40AF !important;
 }
+
 
 
 

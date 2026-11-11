@@ -358,9 +358,9 @@ export default function Admin({ me, onSignOut }) {
     <div className="page dash-premium ad-page">
       <div className="dash-bg" aria-hidden="true">
         <GlassFold
-          color1={dark ? "#1e3cc8" : "#c7d2fe"}
-          color2={dark ? "#06081e" : "#f8fafc"}
-          color3={dark ? "#96d7ff" : "#bae6fd"}
+          color1="#1e3cc8"
+          color2="#06081e"
+          color3="#96d7ff"
           speed={0.4}
           scale={1}
           noise={0.08}
@@ -415,7 +415,7 @@ export default function Admin({ me, onSignOut }) {
       {/* Liquid Glass Navigation Bar (Waterline) - Top & Centered */}
       <div className="admin-liquid-nav-container">
         <LiquidNavbar
-          tone={dark ? "dark" : "light"}
+          tone="dark"
           active={Math.max(0, ADMIN_NAV_KEYS.indexOf(activeTab))}
           onChange={(index) => setActiveTab(ADMIN_NAV_KEYS[index])}
           items={ADMIN_NAV_ITEMS}
