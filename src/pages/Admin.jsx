@@ -489,13 +489,13 @@ export default function Admin({ me, onSignOut }) {
               <select className="ad-select" value={year} onChange={(e) => setYear(e.target.value)}>
                 {years().map((y) => <option key={y} value={y}>{y}</option>)}
               </select>
-              <div className="ad-export-btns">
+              <div className="ad-export-btns" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {[
-                  { label: 'PDF', fn: () => downloadWorkersReport('pdf', sorted, monthName(month) || 'Year', year, deptFilter) },
-                  { label: 'CSV', fn: () => downloadWorkersReport('csv', sorted, monthName(month) || 'Year', year, deptFilter) },
-                  { label: 'Excel', fn: () => downloadWorkersReport('xlsx', sorted, monthName(month) || 'Year', year, deptFilter) },
+                  { label: 'PDF', cls: 'ad-btn-export-pdf', fn: () => downloadWorkersReport('pdf', sorted, monthName(month) || 'Year', year, deptFilter) },
+                  { label: 'CSV', cls: 'ad-btn-export-csv', fn: () => downloadWorkersReport('csv', sorted, monthName(month) || 'Year', year, deptFilter) },
+                  { label: 'Excel', cls: 'ad-btn-export-xlsx', fn: () => downloadWorkersReport('xlsx', sorted, monthName(month) || 'Year', year, deptFilter) },
                 ].map(b => (
-                  <button key={b.label} className="ad-btn" style={{ fontSize: 12, padding: '7px 14px' }} onClick={b.fn}>{b.label}</button>
+                  <button key={b.label} className={`ad-btn ${b.cls}`} style={{ fontSize: 12, padding: '7px 14px' }} onClick={b.fn}>{b.label}</button>
                 ))}
               </div>
             </div>
@@ -527,6 +527,7 @@ export default function Admin({ me, onSignOut }) {
               <table className="tbl">
                 <thead>
                   <tr>
+                    <th className="num th-col-id" style={{ width: 44, textAlign: 'center' }}>#</th>
                     <SortTh colKey="name" label="Worker" className="th-col-worker" />
                     <SortTh colKey="presentDays" label="Present" className="num th-col-present" />
                     <SortTh colKey="lateDays" label="Late" className="num th-col-late" />
@@ -537,8 +538,9 @@ export default function Admin({ me, onSignOut }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {sorted.map((r) => (
+                  {sorted.map((r, idx) => (
                     <tr key={r.id}>
+                      <td className="num">{idx + 1}</td>
                       <td><div className="name">{r.name}</div><div className="dep">{r.department} · {r.id}</div></td>
                       <td className="num">{r.presentDays}</td>
                       <td className="num" style={{ color: r.lateDays ? '#F59E0B' : 'inherit' }}>{r.lateDays || '–'}</td>
@@ -549,7 +551,7 @@ export default function Admin({ me, onSignOut }) {
                     </tr>
                   ))}
                   {sorted.length === 0 && (
-                    <tr><td colSpan={11} className="muted" style={{ textAlign: 'center', padding: 28 }}>{search || deptFilter !== 'All' ? 'No workers match the current filter.' : 'No worker data yet.'}</td></tr>
+                    <tr><td colSpan={12} className="muted" style={{ textAlign: 'center', padding: 28 }}>{search || deptFilter !== 'All' ? 'No workers match the current filter.' : 'No worker data yet.'}</td></tr>
                   )}
                 </tbody>
               </table>
@@ -680,13 +682,13 @@ export default function Admin({ me, onSignOut }) {
                     {years().map((y) => <option key={y} value={y}>{y}</option>)}
                   </select>
                 </div>
-                <div className="ad-export-btns">
+                <div className="ad-export-btns" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   {[
-                    { label: 'PDF', fn: () => downloadExpense('pdf', eRows, mp, monthName(month) || 'Year', year, empTypeFilter) },
-                    { label: 'CSV', fn: () => downloadExpense('csv', eRows, mp, monthName(month) || 'Year', year, empTypeFilter) },
-                    { label: 'Excel', fn: () => downloadExpense('xlsx', eRows, mp, monthName(month) || 'Year', year, empTypeFilter) },
+                    { label: 'PDF', cls: 'ad-btn-export-pdf', fn: () => downloadExpense('pdf', eRows, mp, monthName(month) || 'Year', year, empTypeFilter) },
+                    { label: 'CSV', cls: 'ad-btn-export-csv', fn: () => downloadExpense('csv', eRows, mp, monthName(month) || 'Year', year, empTypeFilter) },
+                    { label: 'Excel', cls: 'ad-btn-export-xlsx', fn: () => downloadExpense('xlsx', eRows, mp, monthName(month) || 'Year', year, empTypeFilter) },
                   ].map(b => (
-                    <button key={b.label} className="ad-btn" style={{ fontSize: 12, padding: '7px 14px' }} onClick={b.fn}>{b.label}</button>
+                    <button key={b.label} className={`ad-btn ${b.cls}`} style={{ fontSize: 12, padding: '7px 14px' }} onClick={b.fn}>{b.label}</button>
                   ))}
                 </div>
               </div>
@@ -806,7 +808,7 @@ export default function Admin({ me, onSignOut }) {
                 <table className="tbl">
                   <thead>
                     <tr>
-                      <th className="th-col-id">#</th>
+                      <th className="num th-col-id" style={{ width: 44, textAlign: 'center' }}>#</th>
                       <th className="th-col-name">Name</th>
                       <th className="th-col-id">ID</th>
                       <th className="th-col-worker">Department</th>
@@ -826,7 +828,7 @@ export default function Admin({ me, onSignOut }) {
                   <tbody>
                     {(data.rows || []).map((w, idx) => (
                       <tr key={w.id}>
-                        <td>{idx + 1}</td>
+                        <td className="num">{idx + 1}</td>
                         <td><strong>{w.name}</strong></td>
                         <td>{w.id}</td>
                         <td>{w.department}</td>

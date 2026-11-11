@@ -1089,22 +1089,23 @@ export default function WorkerDetail({ me, onSignOut }) {
                 <table className="tbl month-tbl">
                   <thead>
                     <tr>
-                      <th rowSpan={2} className="corner">Period</th>
-                      <th colSpan={4} className="grp">Attendance</th>
-                      <th colSpan={4} className="grp soft">Wages (AED)</th>
-                      <th colSpan={6} className="grp soft">Leave days by type</th>
+                      <th rowSpan={2} className="num th-col-id" style={{ width: 44, textAlign: 'center' }}>#</th>
+                      <th rowSpan={2} className="corner th-col-period">Period</th>
+                      <th colSpan={4} className="grp grp-attendance">Attendance</th>
+                      <th colSpan={4} className="grp grp-wages soft">Wages (AED)</th>
+                      <th colSpan={6} className="grp grp-leave soft">Leave days by type</th>
                     </tr>
                     <tr>
-                      <th className="num">Present</th>
-                      <th className="num">Late</th>
-                      <th className="num">Absent</th>
-                      <th className="num">Avg %</th>
-                      <th className="num">Duty hrs</th>
-                      <th className="num">OT hrs</th>
-                      <th className="num">Duty pay</th>
-                      <th className="num">OT pay</th>
+                      <th className="th-sub th-col-present num">Present</th>
+                      <th className="th-sub th-col-late num">Late</th>
+                      <th className="th-sub th-col-absent num">Absent</th>
+                      <th className="th-sub th-col-avg num">Avg %</th>
+                      <th className="th-sub th-col-duty-hrs num">Duty hrs</th>
+                      <th className="th-sub th-col-ot-hrs num">OT hrs</th>
+                      <th className="th-sub th-col-duty-pay num">Duty pay</th>
+                      <th className="th-sub th-col-ot-pay num">OT pay</th>
                       {LEAVE_KEYS.map((k) => (
-                        <th key={k} className="num">
+                        <th key={k} className={`th-sub th-col-leave num th-leave-${k}`}>
                           <span className="ldot" style={{ background: LEAVE_COLORS[k] }} />
                           {LEAVE_SHORT[k]}
                         </th>
@@ -1113,11 +1114,12 @@ export default function WorkerDetail({ me, onSignOut }) {
                   </thead>
                   <tbody>
                     {periodView === 'monthly' ? (
-                      monthsWithData.filter(({ i }) => summaryMonth === 'all' || String(i + 1).padStart(2, '0') === summaryMonth).map(({ mn, i, s }) => {
+                      monthsWithData.filter(({ i }) => summaryMonth === 'all' || String(i + 1).padStart(2, '0') === summaryMonth).map(({ mn, i, s }, idx) => {
                         const pct = monthPct(s);
                         const counts = { ml: s.ml, emergency: s.emergency, work_related: s.workRelated, casual: s.casual, unpaid: s.unpaid, unspecified: s.unspecified };
                         return (
                           <tr key={mn} className="clickrow" onClick={() => setCalMonth(i + 1)}>
+                            <td className="num">{idx + 1}</td>
                             <td className="name">{mn}</td>
                             <td className="num">{s.presentDays}</td>
                             <td className="num" style={{ color: (s.lateDays || 0) ? '#F59E0B' : 'inherit' }}>{s.lateDays || '–'}</td>
@@ -1132,13 +1134,14 @@ export default function WorkerDetail({ me, onSignOut }) {
                         );
                       })
                     ) : (
-                      (periodRows || []).map((row) => {
+                      (periodRows || []).map((row, idx) => {
                         const pct = row.presentDays + row.absentDays > 0
                           ? Math.round((row.presentDays / (row.presentDays + row.absentDays)) * 1000) / 10
                           : null;
                         const counts = { ml: row.ml, emergency: row.emergency, work_related: row.workRelated, casual: row.casual, unpaid: row.unpaid, unspecified: row.unspecified };
                         return (
                           <tr key={row.label}>
+                            <td className="num">{idx + 1}</td>
                             <td className="name">{row.label}</td>
                             <td className="num">{row.presentDays}</td>
                             <td className="num" style={{ color: row.lateDays ? '#F59E0B' : 'inherit' }}>{row.lateDays || '–'}</td>
@@ -1155,12 +1158,13 @@ export default function WorkerDetail({ me, onSignOut }) {
                     )}
                     {((periodView === 'monthly' && monthsWithData.length === 0) || (periodView !== 'monthly' && (!periodRows || periodRows.length === 0))) && (
                       <tr>
-                        <td colSpan={15} className="muted empty-row">No attendance marked yet for {year}.</td>
+                        <td colSpan={16} className="muted empty-row">No attendance marked yet for {year}.</td>
                       </tr>
                     )}
                   </tbody>
                   <tfoot>
                     <tr>
+                      <td className="num" style={{ fontWeight: 800 }}>Σ</td>
                       <td className="name">{activePeriodInfo.badge} Total</td>
                       <td className="num">{activePeriodInfo.totals?.p ?? 0}</td>
                       <td className="num" style={{ color: activePeriodInfo.totals?.late ? '#F59E0B' : 'inherit' }}>{activePeriodInfo.totals?.late || '–'}</td>

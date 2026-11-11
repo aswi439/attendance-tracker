@@ -4856,10 +4856,11 @@ html[data-theme="dark"] .dash-premium .topbar::after {
   margin: 0;
 }
 
+.ad-export-btns,
 .ad-table-toolbar .ad-export-btns {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
 }
 
 .ad-table-toolbar .ad-toolbar-actions {
@@ -6430,52 +6431,174 @@ html[data-theme="light"] .sv-logo {
   box-shadow: 0 0 18px rgba(56, 189, 248, 0.45) !important;
 }
 
-/* Dropdown Selectors */
+/* Dropdown Selectors in Light Mode - Custom Chevron Arrow Mark */
+html[data-theme="light"] select.ad-select,
 html[data-theme="light"] .ad-select,
-html[data-theme="light"] .sv-date-pick,
-html[data-theme="light"] .input {
-  background: #FFFFFF !important;
-  border: 1px solid #CBD5E1 !important;
+html[data-theme="light"] select.input,
+html[data-theme="light"] select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-color: #FFFFFF !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230072FF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: calc(100% - 12px) center !important;
+  background-size: 14px 14px !important;
+  padding: 8px 36px 8px 14px !important;
+  border: 1.5px solid #CBD5E1 !important;
+  border-radius: 12px !important;
   color: #0F172A !important;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important;
-}
-html[data-theme="light"] .ad-select:focus,
-html[data-theme="light"] .sv-date-pick:focus,
-html[data-theme="light"] .input:focus {
-  border-color: #3B82F6 !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14) !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Export Buttons in Header */
-html[data-theme="light"] .ad-btn-export-pdf {
-  background: #FEF2F2 !important;
-  border-color: #FECACA !important;
+html[data-theme="light"] select.ad-select:hover,
+html[data-theme="light"] .ad-select:hover,
+html[data-theme="light"] select.input:hover,
+html[data-theme="light"] select:hover {
+  background-color: #F8FAFC !important;
+  border-color: #0099FF !important;
+  box-shadow: 0 3px 8px rgba(0, 153, 255, 0.15) !important;
+  transform: translateY(-1px) !important;
+}
+
+html[data-theme="light"] select.ad-select:focus,
+html[data-theme="light"] .ad-select:focus,
+html[data-theme="light"] select.input:focus,
+html[data-theme="light"] select:focus {
+  border-color: #0072FF !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.18) !important;
+}
+
+html[data-theme="light"] .ad-select option,
+html[data-theme="light"] select.input option,
+html[data-theme="light"] select option {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  font-weight: 600 !important;
+  padding: 8px 12px !important;
+}
+
+/* General Text & Date Inputs in Light Mode */
+html[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] .sv-date-pick,
+html[data-theme="light"] textarea.input {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  border-radius: 12px !important;
+  padding: 8px 14px !important;
+  font-size: 13.5px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  transition: all 0.2s ease !important;
+}
+
+html[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]):focus,
+html[data-theme="light"] .sv-date-pick:focus,
+html[data-theme="light"] textarea.input:focus {
+  border-color: #0072FF !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.18) !important;
+}
+
+/* Export Buttons & General Buttons in Light Mode */
+html[data-theme="light"] .ad-export-btns .ad-btn,
+html[data-theme="light"] .ad-btn {
+  background: #FFFFFF !important;
+  border: 1.5px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+  cursor: pointer;
+  border-radius: 10px !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+html[data-theme="light"] .ad-export-btns .ad-btn:hover,
+html[data-theme="light"] .ad-btn:hover {
+  background: #F8FAFC !important;
+  border-color: #94A3B8 !important;
+  color: #0F172A !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12) !important;
+}
+
+/* Specific Export Button Colors with Premium Vibrancy & Interactive Hover Lift */
+html[data-theme="light"] .ad-export-btns .ad-btn.ad-btn-export-pdf,
+html[data-theme="light"] .ad-btn.ad-btn-export-pdf {
+  background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%) !important;
+  border: 1.5px solid #FCA5A5 !important;
   color: #DC2626 !important;
+  font-weight: 800 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
 }
-html[data-theme="light"] .ad-btn-export-pdf:hover {
-  background: #FEE2E2 !important;
-  border-color: #F87171 !important;
+html[data-theme="light"] .ad-export-btns .ad-btn.ad-btn-export-pdf:hover,
+html[data-theme="light"] .ad-btn.ad-btn-export-pdf:hover {
+  background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%) !important;
+  border-color: #EF4444 !important;
   color: #B91C1C !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 14px rgba(220, 38, 38, 0.25), 0 0 10px rgba(239, 68, 68, 0.2) !important;
 }
-html[data-theme="light"] .ad-btn-export-csv {
-  background: #F0FDF4 !important;
-  border-color: #BBF7D0 !important;
+html[data-theme="light"] .ad-export-btns .ad-btn.ad-btn-export-pdf:active,
+html[data-theme="light"] .ad-btn.ad-btn-export-pdf:active {
+  transform: scale(0.96) !important;
+  box-shadow: 0 0 22px rgba(239, 68, 68, 0.85), inset 0 0 8px rgba(255, 255, 255, 0.6) !important;
+}
+
+html[data-theme="light"] .ad-export-btns .ad-btn.ad-btn-export-csv,
+html[data-theme="light"] .ad-btn.ad-btn-export-csv {
+  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%) !important;
+  border: 1.5px solid #86EFAC !important;
   color: #16A34A !important;
+  font-weight: 800 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
 }
-html[data-theme="light"] .ad-btn-export-csv:hover {
-  background: #DCFCE7 !important;
-  border-color: #86EFAC !important;
+html[data-theme="light"] .ad-export-btns .ad-btn.ad-btn-export-csv:hover,
+html[data-theme="light"] .ad-btn.ad-btn-export-csv:hover {
+  background: linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%) !important;
+  border-color: #22C55E !important;
   color: #15803D !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 14px rgba(22, 163, 74, 0.25), 0 0 10px rgba(34, 197, 94, 0.2) !important;
 }
-html[data-theme="light"] .ad-btn-export-xlsx {
-  background: #EFF6FF !important;
-  border-color: #BFDBFE !important;
-  color: #2563EB !important;
+html[data-theme="light"] .ad-export-btns .ad-btn.ad-btn-export-csv:active,
+html[data-theme="light"] .ad-btn.ad-btn-export-csv:active {
+  transform: scale(0.96) !important;
+  box-shadow: 0 0 22px rgba(34, 197, 94, 0.85), inset 0 0 8px rgba(255, 255, 255, 0.6) !important;
 }
-html[data-theme="light"] .ad-btn-export-xlsx:hover {
-  background: #DBEAFE !important;
-  border-color: #93C5FD !important;
-  color: #1D4ED8 !important;
+
+/* Excel Download Option in Radiant Neon Light Blue with Click Glow Effect */
+html[data-theme="light"] .ad-export-btns .ad-btn.ad-btn-export-xlsx,
+html[data-theme="light"] .ad-btn.ad-btn-export-xlsx {
+  background: linear-gradient(135deg, #E0F9FE 0%, #BAF0FD 100%) !important;
+  border: 1.5px solid #38BDF8 !important;
+  color: #0284C7 !important;
+  font-weight: 800 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+html[data-theme="light"] .ad-export-btns .ad-btn.ad-btn-export-xlsx:hover,
+html[data-theme="light"] .ad-btn.ad-btn-export-xlsx:hover {
+  background: linear-gradient(135deg, #BAF0FD 0%, #7DD3FC 100%) !important;
+  border-color: #00E5FF !important;
+  color: #0369A1 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.5), 0 6px 16px rgba(56, 189, 248, 0.3) !important;
+}
+html[data-theme="light"] .ad-export-btns .ad-btn.ad-btn-export-xlsx:active,
+html[data-theme="light"] .ad-btn.ad-btn-export-xlsx:active {
+  background: linear-gradient(135deg, #00F5FF 0%, #00C6FF 100%) !important;
+  border-color: #00F5FF !important;
+  color: #042F4E !important;
+  transform: scale(0.96) !important;
+  box-shadow: 0 0 24px rgba(0, 245, 255, 0.9), 0 0 45px rgba(0, 198, 255, 0.7), inset 0 0 10px rgba(255, 255, 255, 0.8) !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.9) !important;
 }
 
 /* ========================================================================
@@ -6610,8 +6733,9 @@ html[data-theme="light"] .ad-card-wrapper:hover .ad-card-border-glow {
 /* Inner Card Body */
 html[data-theme="light"] .ad-card {
   background: #FFFFFF !important;
-  backdrop-filter: blur(32px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  isolation: isolate !important;
   border: 1px solid rgba(56, 189, 248, 0.35) !important;
   box-shadow: 
     inset 0 1px 2px 0 rgba(255, 255, 255, 0.9),
@@ -6640,209 +6764,650 @@ html[data-theme="light"] .ad-card-shine-line {
   background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.65), transparent) !important;
 }
 
-/* Shift & Break Configuration Section */
+/* Shift & Break Configuration Section - 4 Elegant Fading Pastel Shades */
 html[data-theme="light"] .sc-item {
-  background: #F8FAFC !important;
-  border: 1px solid rgba(56, 189, 248, 0.35) !important;
-  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.12), inset 0 1px 1px #FFFFFF !important;
+  background: #FFFFFF !important;
+  border-radius: 14px !important;
+  border: 1.5px solid #CBD5E1 !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05), inset 0 1px 0 #FFFFFF !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+html[data-theme="light"] .sc-item:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08) !important;
 }
 
-html[data-theme="light"] .sc-label {
-  color: #475569 !important;
-  font-weight: 700 !important;
+/* Box 1: Shift Start (Cyan Soft Fade) */
+html[data-theme="light"] .sc-item:nth-child(1) {
+  background: linear-gradient(135deg, #E0F2FE 0%, #F0F9FF 40%, #FFFFFF 100%) !important;
+  border-color: #BAE6FD !important;
+  border-left: 5px solid #0099FF !important;
+}
+html[data-theme="light"] .sc-item:nth-child(1) .sc-label {
+  color: #0072FF !important;
+  font-weight: 800 !important;
+}
+
+/* Box 2: Shift End (Amber Soft Fade) */
+html[data-theme="light"] .sc-item:nth-child(2) {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 40%, #FFFFFF 100%) !important;
+  border-color: #FDE68A !important;
+  border-left: 5px solid #D97706 !important;
+}
+html[data-theme="light"] .sc-item:nth-child(2) .sc-label {
+  color: #B45309 !important;
+  font-weight: 800 !important;
+}
+
+/* Box 3: Work Hours / Day (Emerald Soft Fade) */
+html[data-theme="light"] .sc-item:nth-child(3) {
+  background: linear-gradient(135deg, #DCFCE7 0%, #F0FDF4 40%, #FFFFFF 100%) !important;
+  border-color: #BBF7D0 !important;
+  border-left: 5px solid #16A34A !important;
+}
+html[data-theme="light"] .sc-item:nth-child(3) .sc-label {
+  color: #15803D !important;
+  font-weight: 800 !important;
+}
+
+/* Box 4: Lunch Break (Purple/Lilac Soft Fade) */
+html[data-theme="light"] .sc-item:nth-child(4) {
+  background: linear-gradient(135deg, #F3E8FF 0%, #FAF5FF 40%, #FFFFFF 100%) !important;
+  border-color: #E9D5FF !important;
+  border-left: 5px solid #9333EA !important;
+}
+html[data-theme="light"] .sc-item:nth-child(4) .sc-label {
+  color: #7E22CE !important;
+  font-weight: 800 !important;
 }
 
 html[data-theme="light"] .sc-val {
-  color: #000000 !important;
+  color: #0F172A !important;
   font-weight: 800 !important;
   text-shadow: none !important;
 }
 
-/* Filter Chips */
+/* Filter Chips in Light Mode (Fix: text never goes white on hover) */
+html[data-theme="light"] .ad-chips .ad-chip,
+html[data-theme="light"] .ad-chip,
+html[data-theme="light"] .sv-chip,
+html[data-theme="light"] .sv-page .sv-chip,
 html[data-theme="light"] .ad-filter-chip,
 html[data-theme="light"] .sv-pill,
+html[data-theme="light"] .dept-chip,
 html[data-theme="light"] .filter-chip {
-  background: #F1F5F9 !important;
-  border: 1px solid #CBD5E1 !important;
+  background: #FFFFFF !important;
+  border: 1.5px solid #CBD5E1 !important;
   color: #334155 !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
+
+html[data-theme="light"] .ad-chips .ad-chip:hover,
+html[data-theme="light"] .ad-chip:hover,
+html[data-theme="light"] .sv-chip:hover,
+html[data-theme="light"] .sv-page .sv-chip:hover,
 html[data-theme="light"] .ad-filter-chip:hover,
 html[data-theme="light"] .sv-pill:hover,
+html[data-theme="light"] .dept-chip:hover,
 html[data-theme="light"] .filter-chip:hover {
-  background: #E2E8F0 !important;
-  color: #000000 !important;
-  border-color: #94A3B8 !important;
+  background: #EFF6FF !important;
+  border-color: #38BDF8 !important;
+  color: #0284C7 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.18) !important;
 }
+
+/* Active / Clicked Filter Chip in Our Blue with Clean Crisp Shadow (No outer glowing halo) */
+html[data-theme="light"] .ad-chips .ad-chip.active,
+html[data-theme="light"] .ad-chip.active,
+html[data-theme="light"] .sv-chip.active,
+html[data-theme="light"] .sv-page .sv-chip.active,
 html[data-theme="light"] .ad-filter-chip.active,
 html[data-theme="light"] .sv-pill.active,
+html[data-theme="light"] .dept-chip.active,
 html[data-theme="light"] .filter-chip.active {
-  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+  background: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%) !important;
+  border: 1.5px solid #0099FF !important;
   color: #FFFFFF !important;
-  border-color: #38BDF8 !important;
-  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.35) !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 6px rgba(0, 114, 255, 0.28) !important;
+  text-shadow: none !important;
+  transform: translateY(-1px) !important;
+}
+
+html[data-theme="light"] .ad-chips .ad-chip.active:hover,
+html[data-theme="light"] .ad-chip.active:hover,
+html[data-theme="light"] .sv-chip.active:hover,
+html[data-theme="light"] .sv-page .sv-chip.active:hover {
+  background: linear-gradient(135deg, #00D8FF 0%, #0066FF 100%) !important;
+  box-shadow: 0 4px 10px rgba(0, 114, 255, 0.35) !important;
+}
+
+html[data-theme="light"] .ad-chips .ad-chip:active,
+html[data-theme="light"] .ad-chip:active,
+html[data-theme="light"] .sv-chip:active {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 0 1px 3px rgba(0, 114, 255, 0.25) !important;
+}
+
+/* Chip Count Badges in Light Mode */
+html[data-theme="light"] .ad-chip-count {
+  background: #E2E8F0 !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+  transition: all 0.2s ease !important;
+}
+
+html[data-theme="light"] .ad-chip:hover .ad-chip-count {
+  background: #BAE6FD !important;
+  color: #0369A1 !important;
+}
+
+html[data-theme="light"] .ad-chip.active .ad-chip-count {
+  background: rgba(255, 255, 255, 0.28) !important;
+  color: #FFFFFF !important;
 }
 
 /* ========================================================================
    TABLES & MULTIPLE COLORED HEADINGS (Retained from Dark Theme)
    Row Differentiation with Progressive Lighter Shades (Image 2 style)
+   Smooth Sideways Sliding Enabled (overflow-x: auto)
    ======================================================================== */
 html[data-theme="light"] .ad-table-container {
   background: #FFFFFF !important;
-  border: 1px solid #E2E8F0 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  isolation: isolate !important;
+  border: 1.5px solid #CBD5E1 !important;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
   border-radius: 18px !important;
-  overflow: hidden !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #38BDF8 #F1F5F9 !important;
+  position: relative !important;
+}
+
+html[data-theme="light"] .ad-table-container::-webkit-scrollbar {
+  height: 9px !important;
+}
+
+html[data-theme="light"] .ad-table-container::-webkit-scrollbar-track {
+  background: #F8FAFC !important;
+  border-radius: 0 0 16px 16px !important;
+  border-top: 1px solid #E2E8F0 !important;
+}
+
+html[data-theme="light"] .ad-table-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #38BDF8 0%, #0284C7 100%) !important;
+  border-radius: 999px !important;
+  border: 2px solid #F8FAFC !important;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.45) !important;
+}
+
+html[data-theme="light"] .ad-table-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #00E5FF 0%, #0284C7 100%) !important;
+}
+
+html[data-theme="light"] .ad-table-container .tbl,
+html[data-theme="light"] .ad-card .tbl,
+html[data-theme="light"] .tbl {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  width: 100% !important;
+  min-width: 1100px !important;
+}
+
+html[data-theme="light"] .ad-card .tbl thead,
+html[data-theme="light"] .tbl thead {
+  border-radius: 17px 17px 0 0 !important;
+}
+
+html[data-theme="light"] .ad-card .tbl thead tr,
+html[data-theme="light"] .tbl thead tr {
+  background: linear-gradient(180deg, #252E3E 0%, #161D2B 48%, #0C111C 100%) !important;
 }
 
 html[data-theme="light"] .ad-card .tbl th,
 html[data-theme="light"] .tbl th {
-  background: #FFFFFF !important;
-  border-bottom: 2px solid #CBD5E1 !important;
+  background: linear-gradient(180deg, #252E3E 0%, #161D2B 48%, #0C111C 100%) !important;
+  border-top: none !important;
+  border-bottom: 2px solid #38BDF8 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 3px 10px rgba(0, 0, 0, 0.25) !important;
+  padding: 13px 12px !important;
+  font-size: 11.5px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
 }
 
-/* 1. Worker Identity & Info Headers (Solid Jet Black) */
+html[data-theme="light"] .ad-card .tbl thead tr:first-child th:first-child,
+html[data-theme="light"] .tbl thead tr:first-child th:first-child {
+  border-top-left-radius: 17px !important;
+  border-left: 6px solid #38BDF8 !important;
+}
+
+html[data-theme="light"] .ad-card .tbl thead tr:first-child th:last-child,
+html[data-theme="light"] .tbl thead tr:first-child th:last-child {
+  border-top-right-radius: 17px !important;
+  border-right: none !important;
+}
+
+html[data-theme="light"] .ad-card .tbl tbody tr:last-child td:first-child,
+html[data-theme="light"] .tbl tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 17px !important;
+}
+
+html[data-theme="light"] .ad-card .tbl tbody tr:last-child td:last-child,
+html[data-theme="light"] .tbl tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 17px !important;
+}
+
+html[data-theme="light"] .ad-card .tbl th.sort-th:hover,
+html[data-theme="light"] .tbl th.sort-th:hover {
+  background: linear-gradient(180deg, #333F54 0%, #20293D 48%, #141A28 100%) !important;
+  cursor: pointer !important;
+  filter: brightness(1.15) !important;
+}
+
+html[data-theme="light"] .ad-card .tbl th .sort-arrow,
+html[data-theme="light"] .tbl th .sort-arrow {
+  color: #38BDF8 !important;
+  filter: drop-shadow(0 0 6px #38BDF8) !important;
+  font-weight: 900 !important;
+}
+
+/* 1. Worker Identity & Info Headers (Crisp Pure White with Soft Shadow) */
 html[data-theme="light"] .ad-card .tbl th.th-col-worker,
 html[data-theme="light"] .ad-card .tbl th.th-col-type,
 html[data-theme="light"] .ad-card .tbl th.th-col-desig,
 html[data-theme="light"] .ad-card .tbl th.th-col-id,
 html[data-theme="light"] .ad-card .tbl th.th-col-doj,
 html[data-theme="light"] .ad-card .tbl th.th-col-name,
+html[data-theme="light"] .tbl th.th-col-worker,
+html[data-theme="light"] .tbl th.th-col-type,
+html[data-theme="light"] .tbl th.th-col-desig,
+html[data-theme="light"] .tbl th.th-col-id,
+html[data-theme="light"] .tbl th.th-col-doj,
+html[data-theme="light"] .tbl th.th-col-name,
 html[data-theme="light"] .th-info {
-  color: #000000 !important;
+  color: #FFFFFF !important;
   font-weight: 800 !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7) !important;
 }
 
-/* 2. Attendance & Work Hours Columns (Electric Sky Blue) */
+/* 2. Attendance & Work Hours Columns (Electric Sky Blue with Neon Glow) */
 html[data-theme="light"] .ad-card .tbl th.th-col-present,
+html[data-theme="light"] .tbl th.th-col-present,
 html[data-theme="light"] .th-attendance {
-  color: #0284C7 !important;
+  color: #38BDF8 !important;
   font-weight: 800 !important;
-  text-shadow: 0 0 8px rgba(2, 132, 199, 0.25) !important;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.5) !important;
 }
-html[data-theme="light"] .ad-card .tbl th.th-col-hours {
-  color: #0891B2 !important;
+html[data-theme="light"] .ad-card .tbl th.th-col-hours,
+html[data-theme="light"] .tbl th.th-col-hours {
+  color: #67E8F9 !important;
   font-weight: 800 !important;
+  text-shadow: 0 0 8px rgba(103, 232, 249, 0.4) !important;
 }
-html[data-theme="light"] .ad-card .tbl th.th-col-avg {
-  color: #0284C7 !important;
+html[data-theme="light"] .ad-card .tbl th.th-col-avg,
+html[data-theme="light"] .tbl th.th-col-avg {
+  color: #38BDF8 !important;
   font-weight: 800 !important;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.5) !important;
 }
 
-/* 3. Wage & Pay Columns (Vibrant Emerald Green) */
+/* 3. Wage & Pay Columns (Vibrant Mint / Emerald Green with Glow) */
 html[data-theme="light"] .ad-card .tbl th.th-col-wage,
 html[data-theme="light"] .ad-card .tbl th.th-col-wage-total,
+html[data-theme="light"] .tbl th.th-col-wage,
+html[data-theme="light"] .tbl th.th-col-wage-total,
 html[data-theme="light"] .th-wages {
-  color: #059669 !important;
+  color: #34D399 !important;
   font-weight: 800 !important;
-  text-shadow: 0 0 8px rgba(5, 150, 105, 0.25) !important;
+  text-shadow: 0 0 10px rgba(52, 211, 153, 0.45) !important;
 }
 
-/* 4. Allowances & Operational Overhead Columns (Warm Amber Gold) */
+/* 4. Allowances & Operational Overhead Columns (Warm Amber Gold with Glow) */
 html[data-theme="light"] .ad-card .tbl th.th-col-overhead,
+html[data-theme="light"] .tbl th.th-col-overhead,
 html[data-theme="light"] .th-expenses {
-  color: #D97706 !important;
+  color: #FBBF24 !important;
   font-weight: 800 !important;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4) !important;
 }
 
-/* 5. Total Cost Column (Radiant Royal Blue with Soft Blue Background) */
+/* 5. Total Cost Column (Radiant Ice Blue with Deep Glass Tint) */
 html[data-theme="light"] .ad-card .tbl th.th-col-cost-total,
+html[data-theme="light"] .tbl th.th-col-cost-total,
 html[data-theme="light"] .th-total {
-  color: #1D4ED8 !important;
+  color: #93C5FD !important;
   font-weight: 900 !important;
-  background: rgba(219, 234, 254, 0.6) !important;
-  border-bottom: 2px solid #3B82F6 !important;
+  background: rgba(30, 58, 138, 0.45) !important;
+  border-bottom: 2px solid #60A5FA !important;
+  text-shadow: 0 0 12px rgba(147, 197, 253, 0.6) !important;
 }
 
 /* 6. Dashboard Specific Columns & Leave Columns */
-html[data-theme="light"] .ad-card .tbl th.th-col-late {
-  color: #D97706 !important;
+html[data-theme="light"] .ad-card .tbl th.th-col-late,
+html[data-theme="light"] .tbl th.th-col-late {
+  color: #FBBF24 !important;
   font-weight: 800 !important;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4) !important;
 }
-html[data-theme="light"] .ad-card .tbl th.th-col-absent {
-  color: #DC2626 !important;
+html[data-theme="light"] .ad-card .tbl th.th-col-absent,
+html[data-theme="light"] .tbl th.th-col-absent {
+  color: #F87171 !important;
   font-weight: 800 !important;
+  text-shadow: 0 0 8px rgba(248, 113, 113, 0.45) !important;
 }
-html[data-theme="light"] .ad-card .tbl th.th-col-ml {
-  color: #DC2626 !important;
+html[data-theme="light"] .ad-card .tbl th.th-col-ml,
+html[data-theme="light"] .tbl th.th-col-ml {
+  color: #F87171 !important;
   font-weight: 800 !important;
+  text-shadow: 0 0 8px rgba(248, 113, 113, 0.45) !important;
 }
-html[data-theme="light"] .ad-card .tbl th.th-col-emergency {
-  color: #EA580C !important;
+html[data-theme="light"] .ad-card .tbl th.th-col-emergency,
+html[data-theme="light"] .tbl th.th-col-emergency {
+  color: #FB923C !important;
   font-weight: 800 !important;
+  text-shadow: 0 0 8px rgba(251, 146, 60, 0.4) !important;
 }
-html[data-theme="light"] .ad-card .tbl th.th-col-workRelated {
-  color: #7C3AED !important;
+html[data-theme="light"] .ad-card .tbl th.th-col-workRelated,
+html[data-theme="light"] .tbl th.th-col-workRelated {
+  color: #C084FC !important;
   font-weight: 800 !important;
+  text-shadow: 0 0 8px rgba(192, 132, 252, 0.4) !important;
 }
-html[data-theme="light"] .ad-card .tbl th.th-col-casual {
-  color: #D97706 !important;
+html[data-theme="light"] .ad-card .tbl th.th-col-casual,
+html[data-theme="light"] .tbl th.th-col-casual {
+  color: #FCD34D !important;
   font-weight: 800 !important;
+  text-shadow: 0 0 8px rgba(252, 211, 77, 0.4) !important;
 }
-html[data-theme="light"] .ad-card .tbl th.th-col-unpaid {
-  color: #64748B !important;
+html[data-theme="light"] .ad-card .tbl th.th-col-unpaid,
+html[data-theme="light"] .tbl th.th-col-unpaid {
+  color: #CBD5E1 !important;
   font-weight: 700 !important;
 }
-html[data-theme="light"] .ad-card .tbl th.th-col-unspecified {
-  color: #0D9488 !important;
+html[data-theme="light"] .ad-card .tbl th.th-col-unspecified,
+html[data-theme="light"] .tbl th.th-col-unspecified {
+  color: #2DD4BF !important;
   font-weight: 800 !important;
+  text-shadow: 0 0 8px rgba(45, 212, 191, 0.4) !important;
 }
 
 /* ========================================================================
-   TABLE ROWS (Image 2 style: Progressive Lighter Shades & Left Color Accents)
+   TABLE ROWS (Image 2 style: Continuous Seamless Watercolor Blur Smudge)
+   100% OPAQUE HEX COLORS - Solid white backing blocks all background animations.
+   Colors start deeper on the left, flow across the worker name, and then
+   seamlessly smudge across the column divider through a matching color bridge
+   into the next column before feathering to pure white (#FFFFFF).
+   Zero cut-off, zero line-like artifacts across the rounded smudge area.
    ======================================================================== */
-/* Tier 1 (odd-1) */
-html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 1) td,
-html[data-theme="light"] .tbl tbody tr:nth-child(4n + 1) td {
+/* Base row cell styles */
+html[data-theme="light"] .ad-card .tbl tbody tr td,
+html[data-theme="light"] .tbl tbody tr td {
   background: #FFFFFF !important;
   border-bottom: 1px solid #E2E8F0 !important;
 }
+
+/* Ensure zero seams between adjacent leading cells */
+html[data-theme="light"] .ad-card .tbl tbody tr td:first-child,
+html[data-theme="light"] .tbl tbody tr td:first-child {
+  border-right: none !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr td:nth-child(2),
+html[data-theme="light"] .tbl tbody tr td:nth-child(2) {
+  border-left: none !important;
+}
+
+/* Tier 1 (odd-1): Electric Ocean Sky Blue (Continuous Seamless Blur Smudge) */
 html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 1) td:first-child,
 html[data-theme="light"] .tbl tbody tr:nth-child(4n + 1) td:first-child {
-  border-left: 5px solid #1E40AF !important; /* Deep Ocean Accent */
+  border-left: 6px solid #0284C7 !important; /* Electric Blue Accent */
+  border-right: none !important;
+  background: linear-gradient(90deg, #38BDF8 0%, #7DD3FC 14%, #BAE6FD 28%, #BAE6FD 50%, #CDE8FD 68%, #DFEFFE 82%, #EDF6FE 92%, #F6FAFE 100%) !important;
+  box-shadow: inset 8px 0 16px -4px #38BDF8 !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 1) td:nth-child(2),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 1) td:nth-child(2) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #F6FAFE 0%, #FAFDFE 30%, #FFFFFF 65%, #FFFFFF 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 1) td:nth-child(n + 3),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 1) td:nth-child(n + 3) {
+  background: #FFFFFF !important;
+  border-left: none !important;
 }
 
-/* Tier 2 (even-1) */
-html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 2) td,
-html[data-theme="light"] .tbl tbody tr:nth-child(4n + 2) td {
-  background: #F8FAFD !important; /* Soft porcelain tint */
-  border-bottom: 1px solid #E2E8F0 !important;
-}
+/* Tier 2 (even-1): Warm Golden Sand / Camel (Continuous Seamless Blur Smudge) */
 html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 2) td:first-child,
 html[data-theme="light"] .tbl tbody tr:nth-child(4n + 2) td:first-child {
-  border-left: 5px solid #9A8262 !important; /* Warm Taupe / Sand Accent */
+  border-left: 6px solid #B48C5A !important; /* Warm Camel Accent */
+  border-right: none !important;
+  background: linear-gradient(90deg, #C99B62 0%, #DEBE95 14%, #F3DFCA 28%, #F3DFCA 50%, #F6E6D5 68%, #F9EDE2 82%, #FCF5EE 92%, #FDF9F6 100%) !important;
+  box-shadow: inset 8px 0 16px -4px #D4B996 !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 2) td:nth-child(2),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 2) td:nth-child(2) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #FDF9F6 0%, #FEFBFA 30%, #FFFFFF 65%, #FFFFFF 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 2) td:nth-child(n + 3),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 2) td:nth-child(n + 3) {
+  background: #FFFFFF !important;
+  border-left: none !important;
 }
 
-/* Tier 3 (odd-2) */
-html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 3) td,
-html[data-theme="light"] .tbl tbody tr:nth-child(4n + 3) td {
-  background: #F2F6FA !important; /* Gentle slate tint */
-  border-bottom: 1px solid #E2E8F0 !important;
-}
+/* Tier 3 (odd-2): Earth Taupe / Coffee-Slate (Continuous Seamless Blur Smudge) */
 html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 3) td:first-child,
 html[data-theme="light"] .tbl tbody tr:nth-child(4n + 3) td:first-child {
-  border-left: 5px solid #6E6259 !important; /* Earth Slate Accent */
+  border-left: 6px solid #7D6B5D !important; /* Earth Taupe Accent */
+  border-right: none !important;
+  background: linear-gradient(90deg, #A89382 0%, #C8B6A8 14%, #E8DAD0 28%, #E8DAD0 50%, #ECE1D8 68%, #F2EAE4 82%, #F7F3EF 92%, #FAFAF8 100%) !important;
+  box-shadow: inset 8px 0 16px -4px #BDB0A6 !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 3) td:nth-child(2),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 3) td:nth-child(2) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #FAFAF8 0%, #FCFCFB 30%, #FFFFFF 65%, #FFFFFF 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 3) td:nth-child(n + 3),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 3) td:nth-child(n + 3) {
+  background: #FFFFFF !important;
+  border-left: none !important;
 }
 
-/* Tier 4 (even-2) */
-html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 4) td,
-html[data-theme="light"] .tbl tbody tr:nth-child(4n + 4) td {
-  background: #EAF0F7 !important; /* Deeper contrast tint */
-  border-bottom: 1px solid #E2E8F0 !important;
-}
+/* Tier 4 (even-2): Charcoal / Slate Silver (Continuous Seamless Blur Smudge) */
 html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 4) td:first-child,
 html[data-theme="light"] .tbl tbody tr:nth-child(4n + 4) td:first-child {
-  border-left: 5px solid #363636 !important; /* Charcoal Accent */
+  border-left: 6px solid #374151 !important; /* Dark Slate Accent */
+  border-right: none !important;
+  background: linear-gradient(90deg, #94A3B8 0%, #B9C5D1 14%, #DCE2E8 28%, #DCE2E8 50%, #E3E8EC 68%, #EBEFF2 82%, #F3F5F7 92%, #F8F9FA 100%) !important;
+  box-shadow: inset 8px 0 16px -4px #9CA3AF !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 4) td:nth-child(2),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 4) td:nth-child(2) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #F8F9FA 0%, #FBFCFC 30%, #FFFFFF 65%, #FFFFFF 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 4) td:nth-child(n + 3),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 4) td:nth-child(n + 3) {
+  background: #FFFFFF !important;
+  border-left: none !important;
 }
 
-/* Row Hover State */
-html[data-theme="light"] .ad-card .tbl tbody tr:hover td,
-html[data-theme="light"] .tbl tbody tr:hover td {
-  background: #E0EFFF !important;
+/* Support for tables where column 1 is # row index and column 2 is Worker / Item (Expense Breakdown, Manage Workers, Dashboard, Employee Track) */
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 1):has(td.num:first-child) td:first-child,
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 1):has(td.num:first-child) td:first-child {
+  background: #38BDF8 !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  width: 44px !important;
+  max-width: 44px !important;
+  border-left: 6px solid #0284C7 !important;
+  border-right: none !important;
+  box-shadow: none !important;
 }
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 1):has(td.num:first-child) td:nth-child(2),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 1):has(td.num:first-child) td:nth-child(2) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #38BDF8 0%, #7DD3FC 14%, #BAE6FD 28%, #BAE6FD 50%, #CDE8FD 68%, #DFEFFE 82%, #EDF6FE 92%, #F6FAFE 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 1):has(td.num:first-child) td:nth-child(3),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 1):has(td.num:first-child) td:nth-child(3) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #F6FAFE 0%, #FAFDFE 30%, #FFFFFF 65%, #FFFFFF 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 1):has(td.num:first-child) td:nth-child(n + 4),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 1):has(td.num:first-child) td:nth-child(n + 4) {
+  background: #FFFFFF !important;
+  border-left: none !important;
+}
+
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 2):has(td.num:first-child) td:first-child,
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 2):has(td.num:first-child) td:first-child {
+  background: #C99B62 !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  width: 44px !important;
+  max-width: 44px !important;
+  border-left: 6px solid #B48C5A !important;
+  border-right: none !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 2):has(td.num:first-child) td:nth-child(2),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 2):has(td.num:first-child) td:nth-child(2) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #C99B62 0%, #DEBE95 14%, #F3DFCA 28%, #F3DFCA 50%, #F6E6D5 68%, #F9EDE2 82%, #FCF5EE 92%, #FDF9F6 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 2):has(td.num:first-child) td:nth-child(3),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 2):has(td.num:first-child) td:nth-child(3) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #FDF9F6 0%, #FEFBFA 30%, #FFFFFF 65%, #FFFFFF 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 2):has(td.num:first-child) td:nth-child(n + 4),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 2):has(td.num:first-child) td:nth-child(n + 4) {
+  background: #FFFFFF !important;
+  border-left: none !important;
+}
+
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 3):has(td.num:first-child) td:first-child,
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 3):has(td.num:first-child) td:first-child {
+  background: #A89382 !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  width: 44px !important;
+  max-width: 44px !important;
+  border-left: 6px solid #7D6B5D !important;
+  border-right: none !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 3):has(td.num:first-child) td:nth-child(2),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 3):has(td.num:first-child) td:nth-child(2) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #A89382 0%, #C8B6A8 14%, #E8DAD0 28%, #E8DAD0 50%, #ECE1D8 68%, #F2EAE4 82%, #F7F3EF 92%, #FAFAF8 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 3):has(td.num:first-child) td:nth-child(3),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 3):has(td.num:first-child) td:nth-child(3) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #FAFAF8 0%, #FCFCFB 30%, #FFFFFF 65%, #FFFFFF 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 3):has(td.num:first-child) td:nth-child(n + 4),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 3):has(td.num:first-child) td:nth-child(n + 4) {
+  background: #FFFFFF !important;
+  border-left: none !important;
+}
+
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 4):has(td.num:first-child) td:first-child,
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 4):has(td.num:first-child) td:first-child {
+  background: #94A3B8 !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  width: 44px !important;
+  max-width: 44px !important;
+  border-left: 6px solid #374151 !important;
+  border-right: none !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 4):has(td.num:first-child) td:nth-child(2),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 4):has(td.num:first-child) td:nth-child(2) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #94A3B8 0%, #B9C5D1 14%, #DCE2E8 28%, #DCE2E8 50%, #E3E8EC 68%, #EBEFF2 82%, #F3F5F7 92%, #F8F9FA 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 4):has(td.num:first-child) td:nth-child(3),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 4):has(td.num:first-child) td:nth-child(3) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #F8F9FA 0%, #FBFCFC 30%, #FFFFFF 65%, #FFFFFF 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:nth-child(4n + 4):has(td.num:first-child) td:nth-child(n + 4),
+html[data-theme="light"] .tbl tbody tr:nth-child(4n + 4):has(td.num:first-child) td:nth-child(n + 4) {
+  background: #FFFFFF !important;
+  border-left: none !important;
+}
+
+/* Row Hover State for tables with leading # index */
+html[data-theme="light"] .ad-card .tbl tbody tr:hover:has(td.num:first-child) td:first-child,
+html[data-theme="light"] .tbl tbody tr:hover:has(td.num:first-child) td:first-child {
+  background: #38BDF8 !important;
+  color: #FFFFFF !important;
+  border-left-color: #0284C7 !important;
+  border-right: none !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:hover:has(td.num:first-child) td:nth-child(2),
+html[data-theme="light"] .tbl tbody tr:hover:has(td.num:first-child) td:nth-child(2) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #38BDF8 0%, #60A5FA 14%, #93C5FD 28%, #BFDBFE 50%, #D0E4FE 68%, #E1EFFE 82%, #EEF6FE 92%, #F4F8FE 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:hover:has(td.num:first-child) td:nth-child(3),
+html[data-theme="light"] .tbl tbody tr:hover:has(td.num:first-child) td:nth-child(3) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #F4F8FE 0%, #F8FAFE 30%, #F0F7FF 65%, #F0F7FF 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:hover:has(td.num:first-child) td:nth-child(n + 4),
+html[data-theme="light"] .tbl tbody tr:hover:has(td.num:first-child) td:nth-child(n + 4) {
+  background: #F0F7FF !important;
+  border-left: none !important;
+}
+
+/* Row Hover State with Luminous Blur Smudge */
 html[data-theme="light"] .ad-card .tbl tbody tr:hover td:first-child,
 html[data-theme="light"] .tbl tbody tr:hover td:first-child {
+  background: linear-gradient(90deg, #38BDF8 0%, #60A5FA 14%, #93C5FD 28%, #BFDBFE 50%, #D0E4FE 68%, #E1EFFE 82%, #EEF6FE 92%, #F4F8FE 100%) !important;
   border-left-color: #0284C7 !important;
+  box-shadow: inset 10px 0 20px -4px #38BDF8 !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:hover td:nth-child(2),
+html[data-theme="light"] .tbl tbody tr:hover td:nth-child(2) {
+  border-left: none !important;
+  border-right: none !important;
+  background: linear-gradient(90deg, #F4F8FE 0%, #F8FAFE 30%, #F0F7FF 65%, #F0F7FF 100%) !important;
+}
+html[data-theme="light"] .ad-card .tbl tbody tr:hover td:nth-child(n + 3),
+html[data-theme="light"] .tbl tbody tr:hover td:nth-child(n + 3) {
+  background: #F0F7FF !important;
+  border-left: none !important;
 }
 
 /* Table Text & Numbers (High-Contrast Black & Deep Slate) */
@@ -6864,8 +7429,8 @@ html[data-theme="light"] .tbl td.td-worker-name {
 
 html[data-theme="light"] .ad-card .tbl .dep,
 html[data-theme="light"] .tbl .dep {
-  color: #475569 !important;
-  font-weight: 500 !important;
+  color: #0F172A !important;
+  font-weight: 600 !important;
 }
 
 html[data-theme="light"] .ad-card .tbl td.num,
@@ -6975,15 +7540,55 @@ html[data-theme="light"] .badge.is-inactive {
   font-weight: 700 !important;
 }
 
-/* Buttons in Light Mode */
+/* Primary Buttons in Light Mode - "Our Blue" (Vibrant Electric Blue) with NO outer glowing border halo */
 html[data-theme="light"] .ad-btn-primary,
 html[data-theme="light"] .btn.primary {
-  background: radial-gradient(circle 80px at 80% -10%, #FFFFFF, #93C5FD) !important;
-  box-shadow: 0 4px 18px rgba(2, 132, 199, 0.35) !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important; /* NO glowing border halo around outer the button */
+  overflow: visible !important;
 }
-html[data-theme="light"] .ad-btn-primary-inner {
-  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+
+html[data-theme="light"] .ad-btn-primary::before,
+html[data-theme="light"] .ad-btn-primary::after,
+html[data-theme="light"] .ad-btn-primary:hover::before,
+html[data-theme="light"] .ad-btn-primary:hover::after {
+  display: none !important;
+  box-shadow: none !important;
+  opacity: 0 !important;
+}
+
+html[data-theme="light"] .ad-btn-primary-inner,
+html[data-theme="light"] .btn.primary {
+  background: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%) !important;
   color: #FFFFFF !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  border-radius: 12px !important;
+  border: none !important;
+  padding: 9px 20px !important;
+  box-shadow: 0 2px 6px rgba(0, 114, 255, 0.25) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  text-shadow: none !important;
+}
+
+html[data-theme="light"] .ad-btn-primary-inner::before {
+  display: none !important;
+}
+
+html[data-theme="light"] .ad-btn-primary:hover .ad-btn-primary-inner,
+html[data-theme="light"] .btn.primary:hover {
+  background: linear-gradient(135deg, #00D8FF 0%, #0066FF 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 10px rgba(0, 114, 255, 0.35) !important;
+}
+
+html[data-theme="light"] .ad-btn-primary:active .ad-btn-primary-inner,
+html[data-theme="light"] .btn.primary:active {
+  transform: translateY(0) scale(0.98) !important;
+  box-shadow: 0 1px 3px rgba(0, 114, 255, 0.25) !important;
 }
 html[data-theme="light"] .ad-btn-secondary,
 html[data-theme="light"] .btn.secondary,
@@ -7006,6 +7611,9 @@ html[data-theme="light"] .btn.ghost:hover {
 html[data-theme="light"] .sv-roster-card,
 html[data-theme="light"] .sv-page .sv-roster-card {
   background: #FFFFFF !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  isolation: isolate !important;
   border: 1px solid rgba(56, 189, 248, 0.35) !important;
   box-shadow: 
     0 16px 40px -8px rgba(0, 0, 0, 0.35),
@@ -7099,6 +7707,7 @@ html[data-theme="light"] .sv-page .sv-chip.active {
 
 /* ========================================================================
    SUPERVISOR DAILY ROSTER ROWS (Image 2 style: Distinct Progressive Shades)
+   Left info block with rich visible color and smooth blur smudge into white
    ======================================================================== */
 html[data-theme="light"] .sv-page .sv-row {
   margin-bottom: 12px !important;
@@ -7106,68 +7715,68 @@ html[data-theme="light"] .sv-page .sv-row {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Tier 1 (odd-1) */
+/* Tier 1 (odd-1): Electric Ocean Sky Blue (Image 2 Style with Smooth Blur Smudge) */
 html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 1) {
-  background: #FFFFFF !important;
+  background: linear-gradient(90deg, #38BDF8 0%, #7DD3FC 40px, #BAE6FD 80px, #BAE6FD 180px, #DBEAFE 260px, #EFF6FF 330px, #F8FAFC 380px, #FFFFFF 420px, #FFFFFF 100%) !important;
   border: 1px solid #E2E8F0 !important;
-  border-left: 6px solid #1E40AF !important; /* Deep Ocean Accent */
-  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  border-left: 6px solid #0284C7 !important; /* Electric Blue Accent */
+  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), inset 8px 0 16px -4px #38BDF8 !important;
 }
 html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 1) .sv-avatar {
-  background: #1E40AF !important;
+  background: #0284C7 !important;
   color: #FFFFFF !important;
-  border: 1px solid #1E3A8A !important;
-  box-shadow: 0 3px 10px rgba(30, 64, 175, 0.35) !important;
+  border: 1px solid #0369A1 !important;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.35) !important;
 }
 
-/* Tier 2 (even-1) */
+/* Tier 2 (even-1): Warm Golden Sand / Camel (Image 2 Style with Smooth Blur Smudge) */
 html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 2) {
-  background: #F8FAFD !important; /* Soft porcelain tint */
+  background: linear-gradient(90deg, #C99B62 0%, #DEBE95 40px, #F3DFCA 80px, #F3DFCA 180px, #F8EAE0 260px, #FAF2EC 330px, #FCF9F6 380px, #FFFFFF 420px, #FFFFFF 100%) !important;
   border: 1px solid #E2E8F0 !important;
-  border-left: 6px solid #9A8262 !important; /* Warm Taupe / Sand Accent */
-  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  border-left: 6px solid #B48C5A !important; /* Warm Camel Accent */
+  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), inset 8px 0 16px -4px #D4B996 !important;
 }
 html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 2) .sv-avatar {
-  background: #9A8262 !important;
+  background: #B48C5A !important;
   color: #FFFFFF !important;
-  border: 1px solid #78644A !important;
-  box-shadow: 0 3px 10px rgba(154, 130, 98, 0.35) !important;
+  border: 1px solid #8C6534 !important;
+  box-shadow: 0 3px 10px rgba(180, 140, 90, 0.35) !important;
 }
 
-/* Tier 3 (odd-2) */
+/* Tier 3 (odd-2): Earth Taupe / Coffee-Slate (Image 2 Style with Smooth Blur Smudge) */
 html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 3) {
-  background: #F2F6FA !important; /* Gentle slate tint */
+  background: linear-gradient(90deg, #A89382 0%, #C8B6A8 40px, #E8DAD0 80px, #E8DAD0 180px, #EFE6DF 260px, #F5EFEB 330px, #FAF7F5 380px, #FFFFFF 420px, #FFFFFF 100%) !important;
   border: 1px solid #E2E8F0 !important;
-  border-left: 6px solid #6E6259 !important; /* Earth Slate Accent */
-  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  border-left: 6px solid #7D6B5D !important; /* Earth Taupe Accent */
+  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), inset 8px 0 16px -4px #BDB0A6 !important;
 }
 html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 3) .sv-avatar {
-  background: #6E6259 !important;
+  background: #7D6B5D !important;
   color: #FFFFFF !important;
-  border: 1px solid #52473F !important;
-  box-shadow: 0 3px 10px rgba(110, 98, 89, 0.35) !important;
+  border: 1px solid #5C4E43 !important;
+  box-shadow: 0 3px 10px rgba(125, 107, 93, 0.35) !important;
 }
 
-/* Tier 4 (even-2) */
+/* Tier 4 (even-2): Charcoal / Slate Silver (Image 2 Style with Smooth Blur Smudge) */
 html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 4) {
-  background: #EAF0F7 !important; /* Deeper contrast tint */
+  background: linear-gradient(90deg, #94A3B8 0%, #B9C5D1 40px, #DCE2E8 80px, #DCE2E8 180px, #E7ECF0 260px, #F0F3F6 330px, #F8FAFB 380px, #FFFFFF 420px, #FFFFFF 100%) !important;
   border: 1px solid #E2E8F0 !important;
-  border-left: 6px solid #363636 !important; /* Charcoal Accent */
-  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+  border-left: 6px solid #374151 !important; /* Dark Slate Accent */
+  box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08), inset 8px 0 16px -4px #9CA3AF !important;
 }
 html[data-theme="light"] .sv-page .sv-row:nth-child(4n + 4) .sv-avatar {
-  background: #363636 !important;
+  background: #374151 !important;
   color: #FFFFFF !important;
   border: 1px solid #1F2937 !important;
-  box-shadow: 0 3px 10px rgba(54, 54, 54, 0.35) !important;
+  box-shadow: 0 3px 10px rgba(55, 65, 81, 0.35) !important;
 }
 
-/* Row Hover State */
+/* Row Hover State with Luminous Blur Smudge */
 html[data-theme="light"] .sv-page .sv-row:hover {
-  background: #E0EFFF !important;
+  background: linear-gradient(90deg, #38BDF8 0%, #60A5FA 40px, #93C5FD 80px, #BFDBFE 180px, #DBEAFE 260px, #EFF6FF 330px, #F8FAFC 380px, #F0F7FF 420px, #F0F7FF 100%) !important;
   border-color: #38BDF8 !important;
   border-left-color: #0284C7 !important;
-  box-shadow: 0 8px 24px -4px rgba(2, 132, 199, 0.22), 0 0 16px rgba(56, 189, 248, 0.25) !important;
+  box-shadow: 0 8px 24px -4px rgba(2, 132, 199, 0.22), inset 10px 0 20px -4px #38BDF8 !important;
   transform: translateY(-2px) !important;
 }
 
@@ -7418,6 +8027,841 @@ html[data-theme="light"] .cal-day.is-h {
   border-color: #BFDBFE !important;
   color: #1E40AF !important;
 }
+
+/* ========================================================================
+   MANAGE WORKERS — TOGGLE PERMISSION ROW (Light Mode)
+   ======================================================================== */
+html[data-theme="light"] .toggle-row {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  background: #F8FAFC !important;
+  border: 1.5px solid #CBD5E1 !important;
+  border-radius: 12px !important;
+  padding: 10px 18px !important;
+  margin-bottom: 16px !important;
+  color: #0F172A !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+  transition: all 0.2s ease !important;
+}
+html[data-theme="light"] .toggle-row:hover {
+  border-color: #94A3B8 !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08) !important;
+}
+html[data-theme="light"] .toggle-slider {
+  background: #CBD5E1 !important;
+  border: 1.5px solid #94A3B8 !important;
+  border-radius: 26px !important;
+}
+html[data-theme="light"] .toggle-slider::before {
+  background: #FFFFFF !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+}
+html[data-theme="light"] .toggle-switch input:checked + .toggle-slider {
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+  border-color: #0284C7 !important;
+}
+
+/* ========================================================================
+   HOLIDAY & OFF-DAY CALENDAR (Light Mode - Clear Dates, Card Borders & High Contrast)
+   ======================================================================== */
+/* Holiday Form Container & Shaded Input Boxes (Image 2 Style) */
+html[data-theme="light"] .hol-form {
+  display: flex !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  padding: 16px 20px !important;
+  border-radius: 16px !important;
+  background: #F8FAFC !important;
+  border: 1.5px solid #E2E8F0 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04), inset 0 1px 0 #FFFFFF !important;
+  margin-bottom: 20px !important;
+}
+
+/* Box 1: Date Input with Soft Cyan / Sky Shade & Accent */
+html[data-theme="light"] .hol-form input[type="date"].input,
+html[data-theme="light"] .hol-form input[type="date"] {
+  background: linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%) !important;
+  border: 1.5px solid #BAE6FD !important;
+  border-left: 5px solid #0099FF !important;
+  color: #0F172A !important;
+  font-weight: 700 !important;
+  color-scheme: light !important;
+  border-radius: 12px !important;
+  padding: 9px 14px !important;
+  box-shadow: 0 1px 3px rgba(0, 153, 255, 0.08), inset 0 1px 1px #FFFFFF !important;
+  transition: all 0.2s ease !important;
+}
+html[data-theme="light"] .hol-form input[type="date"].input:hover,
+html[data-theme="light"] .hol-form input[type="date"]:hover {
+  background: #FFFFFF !important;
+  border-color: #0099FF !important;
+  box-shadow: 0 3px 8px rgba(0, 153, 255, 0.15) !important;
+}
+html[data-theme="light"] .hol-form input[type="date"].input:focus,
+html[data-theme="light"] .hol-form input[type="date"]:focus {
+  border-color: #0072FF !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.18) !important;
+}
+
+/* Box 2: Holiday Name Input with Soft Pearl / Slate Shade & Accent */
+html[data-theme="light"] .hol-form input:not([type="date"]).input,
+html[data-theme="light"] .hol-form input:not([type="date"]) {
+  background: linear-gradient(135deg, #F8FAFC 0%, #FFFFFF 100%) !important;
+  border: 1.5px solid #CBD5E1 !important;
+  border-left: 5px solid #64748B !important;
+  color: #0F172A !important;
+  font-weight: 600 !important;
+  border-radius: 12px !important;
+  padding: 9px 16px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), inset 0 1px 1px #FFFFFF !important;
+  transition: all 0.2s ease !important;
+}
+html[data-theme="light"] .hol-form input:not([type="date"]).input::placeholder,
+html[data-theme="light"] .hol-form input:not([type="date"])::placeholder {
+  color: #94A3B8 !important;
+  font-weight: 500 !important;
+}
+html[data-theme="light"] .hol-form input:not([type="date"]).input:hover,
+html[data-theme="light"] .hol-form input:not([type="date"]):hover {
+  background: #FFFFFF !important;
+  border-color: #94A3B8 !important;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08) !important;
+}
+html[data-theme="light"] .hol-form input:not([type="date"]).input:focus,
+html[data-theme="light"] .hol-form input:not([type="date"]):focus {
+  border-color: #0099FF !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.18) !important;
+}
+
+/* Box 3: Holiday Type Dropdown with Soft Warm Amber Shade & Arrow */
+html[data-theme="light"] .hol-form select.input,
+html[data-theme="light"] .hol-form select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background-color: #FFFDF5 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23D97706' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: calc(100% - 12px) center !important;
+  background-size: 14px 14px !important;
+  padding: 9px 36px 9px 14px !important;
+  border: 1.5px solid #FDE68A !important;
+  border-left: 5px solid #D97706 !important;
+  color: #B45309 !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(217, 119, 6, 0.08), inset 0 1px 1px #FFFFFF !important;
+  transition: all 0.2s ease !important;
+}
+html[data-theme="light"] .hol-form select.input:hover,
+html[data-theme="light"] .hol-form select:hover {
+  background-color: #FEF3C7 !important;
+  border-color: #D97706 !important;
+  box-shadow: 0 3px 8px rgba(217, 119, 6, 0.15) !important;
+}
+html[data-theme="light"] .hol-form select.input:focus,
+html[data-theme="light"] .hol-form select:focus {
+  border-color: #D97706 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.18) !important;
+}
+
+html[data-theme="light"] .hol-row {
+  background: #FFFFFF !important;
+  border: 1.5px solid #E2E8F0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+  padding: 14px 20px !important;
+  margin-bottom: 8px !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+html[data-theme="light"] .hol-row:hover {
+  background: #F8FAFC !important;
+  border-color: #38BDF8 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.12) !important;
+}
+html[data-theme="light"] .hol-date {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+  font-size: 14.5px !important;
+}
+html[data-theme="light"] .hol-name {
+  color: #334155 !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+}
+html[data-theme="light"] .hol-type-badge.government {
+  background: #FEF3C7 !important;
+  color: #B45309 !important;
+  border: 1px solid #FCD34D !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .hol-type-badge.company {
+  background: #E0F2FE !important;
+  color: #0369A1 !important;
+  border: 1px solid #BAE6FD !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .hol-del {
+  background: #FEE2E2 !important;
+  color: #DC2626 !important;
+  border: 1px solid #FECACA !important;
+  border-radius: 8px !important;
+  transition: all 0.15s ease !important;
+}
+html[data-theme="light"] .hol-del:hover {
+  background: #FCA5A5 !important;
+  color: #991B1B !important;
+  border-color: #EF4444 !important;
+  transform: scale(1.08) !important;
+}
+
+/* ========================================================================
+   SUPERVISOR ACCOUNTS (Light Mode - Card Borders, Clear Contrast & Action Buttons)
+   ======================================================================== */
+html[data-theme="light"] .sup-section-label {
+  color: #475569 !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  padding: 14px 4px 6px !important;
+}
+html[data-theme="light"] .sup-row {
+  background: #FFFFFF !important;
+  border: 1.5px solid #E2E8F0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+  padding: 16px 20px !important;
+  margin-bottom: 8px !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+html[data-theme="light"] .sup-row:hover {
+  background: #F8FAFC !important;
+  border-color: #38BDF8 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.12) !important;
+}
+html[data-theme="light"] .sup-row.inactive {
+  background: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+  opacity: 0.75 !important;
+}
+html[data-theme="light"] .sup-row-name {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+  font-size: 16px !important;
+}
+html[data-theme="light"] .sup-row-meta {
+  color: #475569 !important;
+  font-weight: 600 !important;
+  font-size: 13.5px !important;
+}
+html[data-theme="light"] .sup-row-date {
+  color: #64748B !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+html[data-theme="light"] .sup-badge.active {
+  background: #DCFCE7 !important;
+  color: #15803D !important;
+  border: 1px solid #86EFAC !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .sup-badge.inactive {
+  background: #F1F5F9 !important;
+  color: #64748B !important;
+  border: 1px solid #CBD5E1 !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .sup-edit-btn {
+  background: #E0F2FE !important;
+  color: #0284C7 !important;
+  border: 1.5px solid #BAE6FD !important;
+  border-radius: 9px !important;
+  transition: all 0.15s ease !important;
+}
+html[data-theme="light"] .sup-edit-btn:hover {
+  background: #0284C7 !important;
+  color: #FFFFFF !important;
+  border-color: #0284C7 !important;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.3) !important;
+}
+html[data-theme="light"] .sup-toggle-btn.deactivate {
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+  border: 1.5px solid #FECACA !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  transition: all 0.15s ease !important;
+}
+html[data-theme="light"] .sup-toggle-btn.deactivate:hover {
+  background: #FEE2E2 !important;
+  border-color: #EF4444 !important;
+  color: #B91C1C !important;
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.2) !important;
+}
+html[data-theme="light"] .sup-toggle-btn.activate {
+  background: #F0FDF4 !important;
+  color: #16A34A !important;
+  border: 1.5px solid #BBF7D0 !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  transition: all 0.15s ease !important;
+}
+html[data-theme="light"] .sup-toggle-btn.activate:hover {
+  background: #DCFCE7 !important;
+  border-color: #22C55E !important;
+  color: #15803D !important;
+  box-shadow: 0 3px 8px rgba(22, 163, 74, 0.2) !important;
+}
+
+/* ========================================================================
+   WORKER DETAIL DOWNLOAD MENU & ACTIONS (Light Mode)
+   ======================================================================== */
+html[data-theme="light"] .dl-btn-accent {
+  background: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%) !important;
+  border: none !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 6px rgba(0, 114, 255, 0.25) !important;
+}
+html[data-theme="light"] .dl-btn-accent:hover {
+  background: linear-gradient(135deg, #00D8FF 0%, #0066FF 100%) !important;
+  box-shadow: 0 4px 10px rgba(0, 114, 255, 0.35) !important;
+  transform: translateY(-1px) !important;
+}
+html[data-theme="light"] .ad-dl-menu {
+  background: #FFFFFF !important;
+  border: 1.5px solid #CBD5E1 !important;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14) !important;
+}
+html[data-theme="light"] .ad-dl-menu button,
+html[data-theme="light"] .ad-dl-menu a {
+  color: #0F172A !important;
+  font-weight: 600 !important;
+}
+html[data-theme="light"] .ad-dl-menu button:hover,
+html[data-theme="light"] .ad-dl-menu a:hover {
+  background: #EFF6FF !important;
+  color: #0284C7 !important;
+}
+
+/* ========================================================================
+   EMPLOYEE TRACK PAGE (WorkerDetail) - PREMIUM LIGHT THEME ENHANCEMENTS
+   ======================================================================== */
+
+/* Ring SVG Track in light mode */
+html[data-theme="light"] .track-stats .ring-svg circle:first-child {
+  stroke: rgba(15, 23, 42, 0.1) !important;
+}
+html[data-theme="light"] .track-stats .stat-attendance .ring-svg circle:last-child {
+  stroke: #0284C7 !important;
+}
+html[data-theme="light"] .track-stats .stat-workforce .ring-svg circle:last-child {
+  stroke: #16A34A !important;
+}
+html[data-theme="light"] .track-stats .stat-emergency .ring-svg circle:last-child {
+  stroke: #D97706 !important;
+}
+html[data-theme="light"] .track-stats .stat-medical .ring-svg circle:last-child {
+  stroke: #EA580C !important;
+}
+
+/* 1. Top 4 Stat Boxes on Employee Track Page */
+html[data-theme="light"] .track-stats .ad-stat {
+  border-radius: 20px !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05), inset 0 1px 0 #FFFFFF !important;
+  border-top: 1.5px solid !important;
+  border-right: 1.5px solid !important;
+  border-bottom: 1.5px solid !important;
+  overflow: hidden !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+html[data-theme="light"] .track-stats .ad-stat:hover {
+  transform: translateY(-3px) !important;
+}
+html[data-theme="light"] .track-stats .ad-stat-glow {
+  display: none !important;
+}
+
+/* Attendance Average Card (Clean Sky Blue Tint) */
+html[data-theme="light"] .track-stats .stat-attendance {
+  background: linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%) !important;
+  border-color: #BAE6FD !important;
+  border-left: 5px solid #0099FF !important;
+}
+html[data-theme="light"] .track-stats .stat-attendance:hover {
+  border-color: #38BDF8 !important;
+  border-left-color: #0072FF !important;
+  box-shadow: 0 10px 24px rgba(0, 114, 255, 0.12), inset 0 1px 0 #FFFFFF !important;
+}
+html[data-theme="light"] .track-stats .stat-attendance .ad-stat-label {
+  color: #0369A1 !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] .track-stats .stat-attendance .ad-stat-pill {
+  background: #E0F2FE !important;
+  color: #0284C7 !important;
+  border: 1px solid #BAE6FD !important;
+  box-shadow: none !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .track-stats .stat-attendance .ad-stat-number {
+  color: #0F172A !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+
+/* Days Present Card (Clean Mint/Emerald Tint) */
+html[data-theme="light"] .track-stats .stat-workforce {
+  background: linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%) !important;
+  border-color: #BBF7D0 !important;
+  border-left: 5px solid #16A34A !important;
+}
+html[data-theme="light"] .track-stats .stat-workforce:hover {
+  border-color: #86EFAC !important;
+  border-left-color: #15803D !important;
+  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.12), inset 0 1px 0 #FFFFFF !important;
+}
+html[data-theme="light"] .track-stats .stat-workforce .ad-stat-label {
+  color: #15803D !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] .track-stats .stat-workforce .ad-stat-pill {
+  background: #DCFCE7 !important;
+  color: #15803D !important;
+  border: 1px solid #BBF7D0 !important;
+  box-shadow: none !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .track-stats .stat-workforce .ad-stat-number {
+  color: #0F172A !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] .track-stats .stat-workforce .ad-stat-unit {
+  color: #16A34A !important;
+  font-weight: 800 !important;
+}
+
+/* Days Absent Card (Clean Warm Amber Tint) */
+html[data-theme="light"] .track-stats .stat-emergency {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FFFFFF 100%) !important;
+  border-color: #FDE68A !important;
+  border-left: 5px solid #D97706 !important;
+}
+html[data-theme="light"] .track-stats .stat-emergency:hover {
+  border-color: #FCD34D !important;
+  border-left-color: #B45309 !important;
+  box-shadow: 0 10px 24px rgba(217, 119, 6, 0.12), inset 0 1px 0 #FFFFFF !important;
+}
+html[data-theme="light"] .track-stats .stat-emergency .ad-stat-label {
+  color: #B45309 !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] .track-stats .stat-emergency .ad-stat-pill {
+  background: #FEF3C7 !important;
+  color: #B45309 !important;
+  border: 1px solid #FDE68A !important;
+  box-shadow: none !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .track-stats .stat-emergency .ad-stat-number {
+  color: #D97706 !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] .track-stats .stat-emergency .ad-stat-unit {
+  color: #D97706 !important;
+  font-weight: 800 !important;
+}
+
+/* Late Arrivals Card (Clean Warm Peach/Orange Tint) */
+html[data-theme="light"] .track-stats .stat-medical {
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFFFFF 100%) !important;
+  border-color: #FFEDD5 !important;
+  border-left: 5px solid #EA580C !important;
+}
+html[data-theme="light"] .track-stats .stat-medical:hover {
+  border-color: #FDBA74 !important;
+  border-left-color: #C2410C !important;
+  box-shadow: 0 10px 24px rgba(234, 88, 12, 0.12), inset 0 1px 0 #FFFFFF !important;
+}
+html[data-theme="light"] .track-stats .stat-medical .ad-stat-label {
+  color: #C2410C !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] .track-stats .stat-medical .ad-stat-pill {
+  background: #FFEDD5 !important;
+  color: #EA580C !important;
+  border: 1px solid #FED7AA !important;
+  box-shadow: none !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .track-stats .stat-medical .ad-stat-number {
+  color: #EA580C !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] .track-stats .stat-medical .ad-stat-unit {
+  color: #EA580C !important;
+  font-weight: 800 !important;
+}
+
+/* Common text & sub styling */
+html[data-theme="light"] .track-stats .ad-stat-sub {
+  color: #64748B !important;
+  font-weight: 600 !important;
+}
+
+/* 2. Average Arrival Time Banner in Light Mode */
+html[data-theme="light"] .track-avg-banner {
+  background: linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%) !important;
+  border: 1.5px solid #BAE6FD !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04) !important;
+  color: #0F172A !important;
+  border-radius: 16px !important;
+}
+html[data-theme="light"] .track-avg-banner .tab-icon {
+  background: #E0F2FE !important;
+  border-color: #BAE6FD !important;
+  color: #0284C7 !important;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.18) !important;
+}
+html[data-theme="light"] .track-avg-banner .tab-label {
+  color: #475569 !important;
+  font-weight: 700 !important;
+}
+html[data-theme="light"] .track-avg-banner .tab-value {
+  color: #0284C7 !important;
+  text-shadow: none !important;
+  font-weight: 900 !important;
+}
+
+/* 3. Worker Profile & Compensation Card in Light Mode */
+html[data-theme="light"] .track-info-item {
+  background: #F8FAFC !important;
+  border: 1.5px solid #E2E8F0 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important;
+  border-radius: 14px !important;
+}
+html[data-theme="light"] .track-info-item:hover {
+  background: #F0F9FF !important;
+  border-color: #BAE6FD !important;
+  box-shadow: 0 4px 12px rgba(0, 114, 255, 0.08) !important;
+}
+html[data-theme="light"] .track-info-item .tii-label {
+  color: #475569 !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+}
+html[data-theme="light"] .track-info-item .tii-value {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+  font-size: 15.5px !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] .track-info-item .tii-value.highlight-cyan {
+  color: #0284C7 !important;
+  text-shadow: none !important;
+  font-weight: 900 !important;
+}
+html[data-theme="light"] .track-info-item .tii-value.wage-green {
+  color: #059669 !important;
+  text-shadow: none !important;
+  font-weight: 900 !important;
+}
+
+/* 4. Payroll Summary Card in Light Mode */
+html[data-theme="light"] .track-payroll-item {
+  background: #F8FAFC !important;
+  border: 1.5px solid #E2E8F0 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important;
+  border-radius: 16px !important;
+}
+html[data-theme="light"] .track-payroll-item.highlight {
+  background: linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%) !important;
+  border-color: #BBF7D0 !important;
+}
+html[data-theme="light"] .track-payroll-item .tpi-label {
+  color: #475569 !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+}
+html[data-theme="light"] .track-payroll-item .tpi-value {
+  color: #0F172A !important;
+  font-weight: 900 !important;
+  font-size: 20px !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] .track-payroll-item.highlight .tpi-value {
+  color: #059669 !important;
+  text-shadow: none !important;
+}
+html[data-theme="light"] .track-payroll-item .tpi-value span {
+  color: #64748B !important;
+}
+
+/* ========================================================================
+   MONTHLY SUMMARY TABLE (Unified 2-Tier Metallic Black+Grey Header)
+   ======================================================================== */
+
+/* Table container styling to hug outer card curvature */
+html[data-theme="light"] .ad-card:has(.month-tbl) .ad-table-container {
+  border-radius: 17px !important;
+  overflow-x: auto !important;
+  border: 1.5px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+/* Obsidian metallic black+grey gradient across both thead rows */
+html[data-theme="light"] .ad-card .month-tbl thead,
+html[data-theme="light"] .month-tbl thead {
+  background: linear-gradient(180deg, #252E3E 0%, #161D2B 48%, #0C111C 100%) !important;
+  border-radius: 16px 16px 0 0 !important;
+}
+
+html[data-theme="light"] .ad-card .month-tbl thead tr,
+html[data-theme="light"] .month-tbl thead tr {
+  background: transparent !important;
+}
+
+html[data-theme="light"] .ad-card .month-tbl th,
+html[data-theme="light"] .month-tbl th {
+  background: transparent !important;
+  box-shadow: none !important;
+  vertical-align: middle !important;
+  padding: 10px 12px !important;
+}
+
+/* Row 1 Group Headers */
+html[data-theme="light"] .ad-card .month-tbl thead tr:first-child th.grp,
+html[data-theme="light"] .month-tbl thead tr:first-child th.grp {
+  color: #38BDF8 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 1.2px !important;
+  text-transform: uppercase !important;
+  text-align: center !important;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.35) !important;
+  border-left: 1px solid rgba(56, 189, 248, 0.25) !important;
+  padding: 11px 8px 9px !important;
+}
+
+html[data-theme="light"] .ad-card .month-tbl thead tr:first-child th.grp.grp-wages,
+html[data-theme="light"] .month-tbl thead tr:first-child th.grp.grp-wages {
+  color: #34D399 !important; /* Green tint for Wages */
+}
+
+/* Row 1 cells spanning 2 rows: # and Period */
+html[data-theme="light"] .ad-card .month-tbl thead tr:first-child th[rowspan="2"],
+html[data-theme="light"] .month-tbl thead tr:first-child th[rowspan="2"] {
+  border-bottom: 2px solid #38BDF8 !important;
+  vertical-align: middle !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  font-size: 11.5px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}
+
+/* Ensure only Row 1 First Child gets Top-Left radius + 6px cyan accent bar */
+html[data-theme="light"] .ad-card .month-tbl thead tr:first-child th:first-child,
+html[data-theme="light"] .month-tbl thead tr:first-child th:first-child {
+  border-top-left-radius: 16px !important;
+  border-left: 6px solid #38BDF8 !important;
+}
+
+/* Ensure only Row 1 Last Child gets Top-Right radius */
+html[data-theme="light"] .ad-card .month-tbl thead tr:first-child th:last-child,
+html[data-theme="light"] .month-tbl thead tr:first-child th:last-child {
+  border-top-right-radius: 16px !important;
+  border-right: none !important;
+}
+
+/* Row 2 Sub-headers: RESET any leaking first-child / last-child rules */
+html[data-theme="light"] .ad-card .month-tbl thead tr:nth-child(2) th,
+html[data-theme="light"] .month-tbl thead tr:nth-child(2) th {
+  border-top: none !important;
+  border-bottom: 2px solid #38BDF8 !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-radius: 0 !important;
+  color: #F1F5F9 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  padding: 8px 10px !important;
+  text-align: center !important;
+}
+
+/* Specific sub-column colors for Row 2 */
+html[data-theme="light"] .ad-card .month-tbl thead tr:nth-child(2) th.th-col-present { color: #38BDF8 !important; }
+html[data-theme="light"] .ad-card .month-tbl thead tr:nth-child(2) th.th-col-late { color: #FBBF24 !important; }
+html[data-theme="light"] .ad-card .month-tbl thead tr:nth-child(2) th.th-col-absent { color: #F87171 !important; }
+html[data-theme="light"] .ad-card .month-tbl thead tr:nth-child(2) th.th-col-avg { color: #34D399 !important; }
+html[data-theme="light"] .ad-card .month-tbl thead tr:nth-child(2) th.th-col-duty-pay,
+html[data-theme="light"] .ad-card .month-tbl thead tr:nth-child(2) th.th-col-ot-pay { color: #34D399 !important; }
+
+/* Tbody cells in Monthly Summary Table */
+html[data-theme="light"] .ad-card .month-tbl td {
+  border-bottom: 1px solid #E2E8F0 !important;
+  color: #334155 !important;
+  background: transparent !important;
+}
+html[data-theme="light"] .ad-card .month-tbl td.name {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .ad-card .month-tbl td.num {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+html[data-theme="light"] .ad-card .month-tbl tbody tr.clickrow:hover td {
+  background: #F0F9FF !important;
+  color: #0284C7 !important;
+}
+html[data-theme="light"] .ad-card .month-tbl tbody tr.clickrow:hover td.name {
+  color: #0072FF !important;
+}
+
+/* Footer Totals Row */
+html[data-theme="light"] .ad-card .month-tbl tfoot td {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+  border-top: 2px solid #CBD5E1 !important;
+  font-weight: 800 !important;
+}
+html[data-theme="light"] .ad-card .month-tbl tfoot td.name {
+  color: #0F172A !important;
+}
+
+/* ========================================================================
+   CALENDAR SECTION (Black+Grey Obsidian Month Boxes + Cyan Border Glow)
+   ======================================================================== */
+html[data-theme="light"] .three-cal-month,
+html[data-theme="light"] .ad-card .three-cal-month {
+  background: linear-gradient(150deg, #1E293B 0%, #141E2E 50%, #0F172A 100%) !important;
+  border: 1.5px solid rgba(56, 189, 248, 0.45) !important;
+  border-radius: 20px !important;
+  padding: 20px 16px 22px !important;
+  box-shadow: 
+    0 10px 28px rgba(15, 23, 42, 0.35), 
+    0 0 20px rgba(56, 189, 248, 0.22),
+    inset 0 1px 1px rgba(255, 255, 255, 0.12) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+html[data-theme="light"] .three-cal-month:hover,
+html[data-theme="light"] .ad-card .three-cal-month:hover {
+  transform: translateY(-2px) !important;
+  border-color: #38BDF8 !important;
+  box-shadow: 
+    0 16px 38px rgba(15, 23, 42, 0.45), 
+    0 0 28px rgba(56, 189, 248, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
+}
+
+html[data-theme="light"] .three-cal-label,
+html[data-theme="light"] .ad-card .three-cal-label {
+  color: #FFFFFF !important;
+  font-family: var(--font-display) !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.6px !important;
+  text-align: center !important;
+  margin-bottom: 14px !important;
+  text-shadow: 0 0 14px rgba(56, 189, 248, 0.5) !important;
+}
+
+/* Single Month View container if user switches to 1 month view */
+html[data-theme="light"] .ad-card > .cal,
+html[data-theme="light"] .cal:not(.cal-sm) {
+  background: linear-gradient(150deg, #1E293B 0%, #141E2E 50%, #0F172A 100%) !important;
+  border: 1.5px solid rgba(56, 189, 248, 0.45) !important;
+  border-radius: 20px !important;
+  padding: 24px 20px !important;
+  box-shadow: 
+    0 10px 28px rgba(15, 23, 42, 0.35), 
+    0 0 20px rgba(56, 189, 248, 0.22),
+    inset 0 1px 1px rgba(255, 255, 255, 0.12) !important;
+  max-width: 540px !important;
+  margin: 0 auto 20px !important;
+}
+
+/* Day of week headers inside calendar */
+html[data-theme="light"] .three-cal-month .cal .hd,
+html[data-theme="light"] .cal .hd {
+  color: #94A3B8 !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.8px !important;
+}
+
+/* Date cells inside the black+grey card */
+html[data-theme="light"] .three-cal-month .cal .cell,
+html[data-theme="light"] .cal .cell {
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+html[data-theme="light"] .three-cal-month .cal .cell:hover:not(.empty),
+html[data-theme="light"] .cal .cell:hover:not(.empty) {
+  transform: translateY(-2px) scale(1.06) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45) !important;
+  z-index: 10 !important;
+}
+
+html[data-theme="light"] .three-cal-month .cal .cell.none .mark,
+html[data-theme="light"] .cal .cell.none .mark {
+  color: #94A3B8 !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme="light"] .three-cal-month .cal .cell.future .mark,
+html[data-theme="light"] .cal .cell.future .mark {
+  color: #64748B !important;
+  opacity: 0.45 !important;
+}
+
+/* Calendar Legend styling */
+html[data-theme="light"] .ad-card .cal-legend {
+  border-top: 1px solid #E2E8F0 !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+html[data-theme="light"] .ad-card .cal-legend .lgd {
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+html[data-theme="light"] .ad-card .cal-legend .present-sw {
+  background: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%) !important;
+  box-shadow: 0 0 8px rgba(0, 114, 255, 0.4) !important;
+}
+html[data-theme="light"] .ad-card .cal-legend .none-sw {
+  background: #E2E8F0 !important;
+  border-color: #CBD5E1 !important;
+}
+
 
 
 
