@@ -19,8 +19,9 @@ export const api = {
   updateWorker: (id, payload) => request(`/api/workers/${id}`, { method: 'PATCH', body: payload }),
   attendance: (date) => request(`/api/attendance?date=${date}`),
   mark: (payload) => request('/api/attendance', { method: 'POST', body: payload }),
+  markLeaveRange: (payload) => request('/api/attendance/leave-range', { method: 'POST', body: payload }),
   closed: (date) => request(`/api/attendance/closed?date=${date}`),
-  clockOut: (workerId, date, timeOut, timeIn) => request('/api/attendance/clock-out', { method: 'POST', body: { workerId, date, timeOut, ...(timeIn ? { timeIn } : {}) } }),
+  clockOut: (workerId, date, timeOut, timeIn, otType) => request('/api/attendance/clock-out', { method: 'POST', body: { workerId, date, timeOut, ...(timeIn ? { timeIn } : {}), ...(otType ? { otType } : {}) } }),
   closeDay: (date) => request('/api/attendance/close', { method: 'POST', body: { date } }),
   shiftConfig: () => request('/api/shift-config'),
   updateShiftConfig: (payload) => request('/api/shift-config', { method: 'PATCH', body: payload }),
@@ -36,6 +37,11 @@ export const api = {
   supervisors: () => request('/api/admin/supervisors'),
   addSupervisor: (payload) => request('/api/admin/supervisors', { method: 'POST', body: payload }),
   updateSupervisor: (id, payload) => request(`/api/admin/supervisors/${id}`, { method: 'PATCH', body: payload }),
+  companies: (all = false) => request(`/api/companies${all ? '?all=1' : ''}`),
+  addCompany: (payload) => request('/api/admin/companies', { method: 'POST', body: payload }),
+  updateCompany: (id, payload) => request(`/api/admin/companies/${id}`, { method: 'PATCH', body: payload }),
+  deleteCompany: (id) => request(`/api/admin/companies/${id}`, { method: 'DELETE' }),
+  updateAttendanceSite: (payload) => request('/api/attendance/site', { method: 'POST', body: payload }),
 };
 
 export function todayStr() {
@@ -58,4 +64,31 @@ export function fmtDate(iso) {
   return new Date(y, m - 1, d).toLocaleDateString('en-GB', {
     weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
   });
+}
+
+export function formatExperience(doj, workerType, dept) {
+  if (!doj) return '—';
+  const type = workerType || '';
+  if (type === 'contract' || dept === 'Ext. Manpower') return '—';
+
+  const start = new Date(doj.includes('T') ? doj : doj + 'T00:00:00');
+  if (isNaN(start.getTime())) return '—';
+
+  const now = new Date();
+  if (now < start) return '0 yrs';
+
+  let years = now.getFullYear() - start.getFullYear();
+  let months = now.getMonth() - start.getMonth();
+  if (now.getDate() < start.getDate()) {
+    months -= 1;
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  if (years === 0 && months === 0) return '< 1 mo';
+  if (years === 0) return `${months} mo${months === 1 ? '' : 's'}`;
+  if (months === 0) return `${years} yr${years === 1 ? '' : 's'}`;
+  return `${years} yr${years === 1 ? '' : 's'} ${months} mo${months === 1 ? '' : 's'}`;
 }

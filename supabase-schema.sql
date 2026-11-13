@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS attendance (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   worker_id TEXT NOT NULL REFERENCES workers(id),
   date DATE NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('present', 'absent')),
+  status TEXT NOT NULL CHECK (status IN ('present', 'absent', 'no_work')),
   leave_type TEXT,
   notes TEXT,
   recorded_by TEXT,

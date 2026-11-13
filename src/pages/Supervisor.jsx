@@ -5,6 +5,7 @@ import { GlassFold } from '@/components/ui/glass-fold';
 
 const LEAVES = [
   ['ml', 'Medical Leave (ML)', '🏥'],
+  ['annual', 'Annual Leave', '✈️'],
   ['emergency', 'Emergency Leave', '🚨'],
   ['work_related', 'Work-related', '🛠️'],
   ['casual', 'Casual Leave', '🌴'],
@@ -54,6 +55,8 @@ export default function Supervisor({ me, onSignOut }) {
   const [date, setDate] = useState(todayStr());
   const [workers, setWorkers] = useState([]);
   const [marks, setMarks] = useState({});
+  const [companies, setCompanies] = useState([]);
+  const [sites, setSites] = useState({});
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
   const [deptFilter, setDeptFilter] = useState('all');
@@ -119,12 +122,30 @@ export default function Supervisor({ me, onSignOut }) {
     let alive = true;
     setLoading(true);
     const yr = date.slice(0, 4);
-    Promise.all([api.workers(), api.attendance(date), api.closed(date), api.holidays(yr).catch(() => ({ holidays: [] })), api.shiftConfig().catch(() => ({ config: null }))])
-      .then(([w, a, c, h, sc]) => {
+    Promise.all([
+      api.workers(),
+      api.attendance(date),
+      api.closed(date),
+      api.holidays(yr).catch(() => ({ holidays: [] })),
+      api.shiftConfig().catch(() => ({ config: null })),
+      api.companies().catch(() => ({ companies: [] })),
+    ])
+      .then(([w, a, c, h, sc, cmp]) => {
         if (!alive) return;
         setWorkers(w.workers);
+        setCompanies(cmp.companies || []);
         const m = {};
-        for (const r of a.records) m[r.worker_id] = r;
+        const s = {};
+        for (const r of a.records || []) {
+          m[r.worker_id] = r;
+          if (r.site) s[r.worker_id] = r.site;
+        }
+        for (const worker of w.workers || []) {
+          if (!s[worker.id] && a.lastSites?.[worker.id]) {
+            s[worker.id] = a.lastSites[worker.id];
+          }
+        }
+        setSites(s);
         setMarks(m);
         setClosed(c.closed);
         setClosedAt(c.closedAt);
@@ -140,6 +161,15 @@ export default function Supervisor({ me, onSignOut }) {
     return () => { alive = false; };
   }, [date]);
 
+  async function handleSiteChange(workerId, newSite) {
+    setSites((prev) => ({ ...prev, [workerId]: newSite }));
+    try {
+      await api.updateAttendanceSite({ workerId, date, site: newSite });
+    } catch (err) {
+      showToast(err.message, true);
+    }
+  }
+
   const addBusy = useCallback((id) => setBusyIds((s) => new Set(s).add(id)), []);
   const removeBusy = useCallback((id) => setBusyIds((s) => { const n = new Set(s); n.delete(id); return n; }), []);
 
@@ -148,15 +178,27 @@ export default function Supervisor({ me, onSignOut }) {
     setTimeout(() => setJustMarkedIds((s) => { const n = new Set(s); n.delete(id); return n; }), 600);
   }
 
-  async function save(worker, status, leaveType = null, notes = null, isLate = false) {
+  async function save(worker, status, leaveType = null, notes = null, isLate = false, otType = null) {
     if (closed) return;
     const prevMark = marks[worker.id] || null;
     const timeIn = status === 'present' ? getCurrentTime() : null;
+    const workerSite = sites[worker.id] || null;
     addBusy(worker.id);
     try {
-      await api.mark({ workerId: worker.id, date, status, leaveType, notes, isLate, timeIn, today: todayStr() });
+      await api.mark({ workerId: worker.id, date, status, leaveType, notes, isLate, otType, timeIn, site: workerSite, today: todayStr() });
       const now = new Date().toISOString();
-      const newMark = { worker_id: worker.id, status, leave_type: leaveType, notes, is_late: isLate ? 1 : 0, recorded_at: now, time_in: timeIn, time_out: null };
+      const newMark = {
+        worker_id: worker.id,
+        status,
+        leave_type: leaveType,
+        notes,
+        is_late: isLate ? 1 : 0,
+        ot_type: otType,
+        site: workerSite,
+        recorded_at: now,
+        time_in: timeIn,
+        time_out: null,
+      };
       setMarks((m) => ({ ...m, [worker.id]: newMark }));
       triggerAnimation(worker.id);
 
@@ -168,6 +210,8 @@ export default function Supervisor({ me, onSignOut }) {
               leaveType: prevMark.leave_type,
               notes: prevMark.notes,
               isLate: prevMark.is_late,
+              otType: prevMark.ot_type,
+              site: prevMark.site || null,
               today: todayStr(),
             }).then(() => {
               setMarks((m) => ({ ...m, [worker.id]: prevMark }));
@@ -177,8 +221,14 @@ export default function Supervisor({ me, onSignOut }) {
         : null;
 
       const label = status === 'present'
-        ? (isLate ? `⏰ ${worker.name} marked late present` : `✓ ${worker.name} marked present`)
-        : `✕ ${worker.name} marked absent — ${LEAVES.find((l) => l[0] === leaveType)?.[1] || ''}`;
+        ? (otType === 'sunday'
+            ? `☀️ ${worker.name} marked Sunday Overtime`
+            : otType === 'holiday'
+              ? `🎉 ${worker.name} marked Holiday Overtime`
+              : (isLate ? `⏰ ${worker.name} marked late present` : `✓ ${worker.name} marked present`))
+        : (status === 'no_work'
+          ? `⚪ ${worker.name} marked No Work`
+          : `✕ ${worker.name} marked absent — ${LEAVES.find((l) => l[0] === leaveType)?.[1] || ''}`);
       showToast(label, false, undoFn);
     } catch (e) {
       showToast(e.message, true);
@@ -187,6 +237,47 @@ export default function Supervisor({ me, onSignOut }) {
     }
   }
 
+  async function saveLeaveRange(worker, { startDate, endDate, leaveType, notes }) {
+    if (closed) return;
+    addBusy(worker.id);
+    try {
+      const res = await api.markLeaveRange({
+        workerId: worker.id,
+        startDate,
+        endDate,
+        leaveType,
+        notes,
+      });
+      if (date >= startDate && date <= endDate) {
+        const now = new Date().toISOString();
+        const newMark = {
+          worker_id: worker.id,
+          status: 'absent',
+          leave_type: leaveType,
+          notes: notes || `Annual Leave (${startDate} to ${endDate})`,
+          is_late: 0,
+          recorded_at: now,
+          time_in: null,
+          time_out: null,
+        };
+        setMarks((m) => ({ ...m, [worker.id]: newMark }));
+        triggerAnimation(worker.id);
+      }
+      const count = res?.count || (Math.round((new Date(endDate + 'T00:00:00Z') - new Date(startDate + 'T00:00:00Z')) / 864e5) + 1);
+      const startFmt = new Date(startDate + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const endFmt = new Date(endDate + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      showToast(`✈️ ${worker.name} booked for ${count} days Annual Leave (${startFmt} – ${endFmt})`);
+    } catch (e) {
+      showToast(e.message || 'Failed to save annual leave range', true);
+    } finally {
+      removeBusy(worker.id);
+    }
+  }
+
+  const dayOfWeek = new Date(date + 'T00:00:00Z').getUTCDay();
+  const isSunday = dayOfWeek === 0;
+  const isHoliday = !!todayHoliday;
+
   async function markAllPresent() {
     if (closed) return;
     const unmarked = workers.filter((w) => !marks[w.id]);
@@ -194,15 +285,27 @@ export default function Supervisor({ me, onSignOut }) {
     for (const w of unmarked) addBusy(w.id);
     try {
       const bulkTimeIn = getCurrentTime();
-      await Promise.all(unmarked.map((w) => api.mark({ workerId: w.id, date, status: 'present', timeIn: bulkTimeIn, today: todayStr() })));
+      const bulkOtType = isHoliday ? 'holiday' : (isSunday ? 'sunday' : null);
+      const bulkNotes = isHoliday ? `${todayHoliday?.name || 'Public'} Holiday Overtime` : (isSunday ? 'Sunday Overtime' : null);
+      await Promise.all(unmarked.map((w) => api.mark({
+        workerId: w.id,
+        date,
+        status: 'present',
+        timeIn: bulkTimeIn,
+        otType: bulkOtType,
+        notes: bulkNotes,
+        site: sites[w.id] || null,
+        today: todayStr(),
+      })));
       const now = new Date().toISOString();
       const m = {};
       for (const w of unmarked) {
-        m[w.id] = { worker_id: w.id, status: 'present', leave_type: null, notes: null, recorded_at: now, time_in: bulkTimeIn, time_out: null };
+        m[w.id] = { worker_id: w.id, status: 'present', leave_type: null, notes: bulkNotes, ot_type: bulkOtType, site: sites[w.id] || null, is_late: 0, recorded_at: now, time_in: bulkTimeIn, time_out: null };
         triggerAnimation(w.id);
       }
       setMarks((prev) => ({ ...prev, ...m }));
-      showToast(`✓ Marked ${unmarked.length} worker${unmarked.length > 1 ? 's' : ''} present`);
+      const otLabel = isHoliday ? ' as Holiday Overtime' : (isSunday ? ' as Sunday Overtime' : ' present');
+      showToast(`✓ Marked ${unmarked.length} worker${unmarked.length > 1 ? 's' : ''}${otLabel}`);
     } catch (e) {
       showToast(e.message, true);
     } finally {
@@ -213,10 +316,12 @@ export default function Supervisor({ me, onSignOut }) {
   const marked = Object.keys(marks).length;
   const present = Object.values(marks).filter((r) => r.status === 'present').length;
   const late = Object.values(marks).filter((r) => r.status === 'present' && r.is_late).length;
-  const absent = marked - present;
+  const noWork = Object.values(marks).filter((r) => r.status === 'no_work').length;
+  const absent = Object.values(marks).filter((r) => r.status === 'absent').length;
   const unmarkedWorkersList = workers.filter((w) => !marks[w.id]);
   const lateWorkersList = workers.filter((w) => marks[w.id]?.status === 'present' && marks[w.id]?.is_late);
   const absentWorkersList = workers.filter((w) => marks[w.id]?.status === 'absent');
+  const noWorkWorkersList = workers.filter((w) => marks[w.id]?.status === 'no_work');
   const byType = {};
   for (const r of Object.values(marks)) {
     if (r.status === 'absent') byType[r.leave_type || 'unspecified'] = (byType[r.leave_type || 'unspecified'] || 0) + 1;
@@ -380,6 +485,11 @@ export default function Supervisor({ me, onSignOut }) {
           <div className="sv-stat-num">{absent}</div>
           <div className="sv-stat-label">Absent</div>
         </div>
+        <div className="sv-stat sv-stat-nowork">
+          <div className="sv-stat-icon">⚪</div>
+          <div className="sv-stat-num">{noWork}</div>
+          <div className="sv-stat-label">No Work</div>
+        </div>
       </div>
 
       {/* Main roster card with shiny borders realism wrapper */}
@@ -438,19 +548,51 @@ export default function Supervisor({ me, onSignOut }) {
                         <span className="sv-id-tag">ID: {w.id}</span>
                         {w.designation && <span className="sv-desig-tag">{w.designation}</span>}
                       </div>
+                      <div className="sv-site-assign">
+                        <span className="sv-site-label">Site:</span>
+                        <select
+                          className="sv-site-select"
+                          value={sites[w.id] || ''}
+                          onChange={(e) => handleSiteChange(w.id, e.target.value)}
+                          disabled={closed || isBusy || m?.status === 'absent' || m?.status === 'no_work'}
+                          title={m?.status === 'absent' || m?.status === 'no_work' ? 'Site assignment disabled for Absent/No Work' : 'Deploy worker to client site'}
+                        >
+                          <option value="">No Site</option>
+                          {companies.map((c) => (
+                            <option key={c.id || c.name} value={c.name}>{c.name}</option>
+                          ))}
+                          {sites[w.id] && !companies.some(c => c.name === sites[w.id]) && (
+                            <option value={sites[w.id]}>{sites[w.id]}</option>
+                          )}
+                        </select>
+                      </div>
                       {m && (
-                        <span className={`sv-mark ${m.status}${m.is_late ? ' late' : ''}`}>
+                        <span className={`sv-mark ${m.status}${m.is_late ? ' late' : ''}${m.ot_type ? ` ot-${m.ot_type}` : ''}`}>
                           {m.status === 'present'
-                            ? (m.is_late ? '⏰ Late Present' : '✓ Present')
-                            : `✕ ${LEAVES.find((l) => l[0] === (m.leave_type || 'unspecified'))?.[1] || 'Absent'}`}
+                            ? (m.ot_type === 'sunday'
+                                ? '☀️ OT (Sun)'
+                                : m.ot_type === 'holiday'
+                                  ? '🎉 OT (Hol)'
+                                  : (m.is_late ? '⏰ Late Present' : '✓ Present'))
+                            : (m.status === 'no_work'
+                              ? '⚪ No Work'
+                              : `✕ ${LEAVES.find((l) => l[0] === (m.leave_type || 'unspecified'))?.[1] || 'Absent'}`)}
                         </span>
                       )}
                       {m && m.status === 'present' && (
                         <div className="sv-time-row">
                           {m.time_out ? (
                             <>
-                              <span className="sv-time-badge hrs">{m.duty_hours || 0}h duty</span>
-                              {Number(m.overtime_hours) > 0 && <span className="sv-time-badge ot">+{m.overtime_hours}h OT</span>}
+                              {m.ot_type ? (
+                                <span className={`sv-time-badge ot ${m.ot_type === 'holiday' ? 'ot-badge-hol' : 'ot-badge-sun'}`}>
+                                  {m.overtime_hours || 0}h {m.ot_type === 'holiday' ? 'Holiday OT' : 'Sunday OT'}
+                                </span>
+                              ) : (
+                                <>
+                                  <span className="sv-time-badge hrs">{m.duty_hours || 0}h duty</span>
+                                  {Number(m.overtime_hours) > 0 && <span className="sv-time-badge ot">+{m.overtime_hours}h OT</span>}
+                                </>
+                              )}
                               {(Number(m.daily_wage) > 0 || Number(m.overtime_wage) > 0) && (
                                 <span className="sv-time-badge wage">AED {((Number(m.daily_wage) || 0) + (Number(m.overtime_wage) || 0)).toFixed(2)}</span>
                               )}
@@ -474,9 +616,29 @@ export default function Supervisor({ me, onSignOut }) {
                   </div>
                   {!closed && (
                     <div className="sv-seg">
-                      <button className={m?.status === 'present' && !m?.is_late ? 'on-p' : ''} onClick={() => !(m?.status === 'present' && !m?.is_late) && save(w, 'present')} disabled={isBusy}>Present</button>
-                      <button className={m?.status === 'present' && m?.is_late ? 'on-l' : ''} onClick={() => !(m?.status === 'present' && m?.is_late) && save(w, 'present', null, null, true)} disabled={isBusy}>Late</button>
+                      <button className={m?.status === 'present' && !m?.is_late && !m?.ot_type ? 'on-p' : ''} onClick={() => !(m?.status === 'present' && !m?.is_late && !m?.ot_type) && save(w, 'present')} disabled={isBusy}>Present</button>
+                      <button className={m?.status === 'present' && m?.is_late && !m?.ot_type ? 'on-l' : ''} onClick={() => !(m?.status === 'present' && m?.is_late && !m?.ot_type) && save(w, 'present', null, null, true)} disabled={isBusy}>Late</button>
                       <button className={m?.status === 'absent' ? 'on-a' : ''} onClick={() => setModal({ worker: w })} disabled={isBusy}>Absent</button>
+                      <button className={m?.status === 'no_work' ? 'on-nw' : ''} onClick={() => !(m?.status === 'no_work') && save(w, 'no_work')} disabled={isBusy}>No Work</button>
+                      {isHoliday ? (
+                        <button
+                          className={m?.status === 'present' && m?.ot_type === 'holiday' ? 'on-oth' : ''}
+                          onClick={() => !(m?.status === 'present' && m?.ot_type === 'holiday') && save(w, 'present', null, `${todayHoliday?.name || 'Public'} Holiday Overtime`, false, 'holiday')}
+                          disabled={isBusy}
+                          title="Public Holiday Overtime — All hours count as Overtime"
+                        >
+                          OT (Hol)
+                        </button>
+                      ) : isSunday ? (
+                        <button
+                          className={m?.status === 'present' && m?.ot_type === 'sunday' ? 'on-ots' : ''}
+                          onClick={() => !(m?.status === 'present' && m?.ot_type === 'sunday') && save(w, 'present', null, 'Sunday Overtime', false, 'sunday')}
+                          disabled={isBusy}
+                          title="Sunday Overtime — All hours count as Overtime"
+                        >
+                          OT (Sun)
+                        </button>
+                      ) : null}
                     </div>
                   )}
                 </div>
@@ -492,12 +654,17 @@ export default function Supervisor({ me, onSignOut }) {
         </div>
       </div>
 
-      {/* Modals — unchanged */}
+      {/* Modals */}
       {modal && <AbsentModal
         worker={modal.worker}
         current={marks[modal.worker.id]}
+        currentDate={date}
         onClose={() => setModal(null)}
         onSave={(lt, notes) => { save(modal.worker, 'absent', lt, notes); setModal(null); }}
+        onSaveRange={async (payload) => {
+          await saveLeaveRange(modal.worker, payload);
+          setModal(null);
+        }}
       />}
 
       {clockingOut && <ClockOutModal
@@ -518,10 +685,14 @@ export default function Supervisor({ me, onSignOut }) {
               overtime_hours: res.hours.overtime,
               daily_wage: res.wages.dailyWage,
               overtime_wage: res.wages.overtimeWage,
+              ot_type: res.otType || prev[clockingOut.worker.id]?.ot_type,
             },
           }));
           setClockingOut(null);
-          showToast(`${clockingOut.worker.name} clocked out — ${res.hours.duty}h duty${res.hours.overtime > 0 ? `, ${res.hours.overtime}h OT` : ''}`);
+          const otSuffix = res.otType
+            ? `${res.hours.overtime}h ${res.otType === 'holiday' ? 'Holiday OT' : 'Sunday OT'}`
+            : `${res.hours.duty}h duty${res.hours.overtime > 0 ? `, ${res.hours.overtime}h OT` : ''}`;
+          showToast(`✓ ${clockingOut.worker.name} clocked out — ${otSuffix}`);
         }}
       />}
 
@@ -543,6 +714,7 @@ export default function Supervisor({ me, onSignOut }) {
         unmarkedWorkers={unmarkedWorkersList}
         lateWorkers={lateWorkersList}
         absentWorkers={absentWorkersList}
+        noWorkWorkers={noWorkWorkersList}
         onClose={() => setClosing(false)}
         onClosed={(result) => {
           setClosing(false);
@@ -566,7 +738,7 @@ export default function Supervisor({ me, onSignOut }) {
   );
 }
 
-function CloseDayModal({ date, workers, unmarkedWorkers, lateWorkers, absentWorkers, onClose, onClosed, showToast }) {
+function CloseDayModal({ date, workers, unmarkedWorkers, lateWorkers, absentWorkers, noWorkWorkers, onClose, onClosed, showToast }) {
   const [busy, setBusy] = useState(false);
   const fmtDate = new Date(date + 'T00:00:00Z').toLocaleDateString('en-GB', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC',
@@ -605,6 +777,12 @@ function CloseDayModal({ date, workers, unmarkedWorkers, lateWorkers, absentWork
             <div className="close-summary-row">
               <span className="close-label">Already marked absent</span>
               <span className="close-value">{absentWorkers.length}</span>
+            </div>
+          )}
+          {noWorkWorkers && noWorkWorkers.length > 0 && (
+            <div className="close-summary-row">
+              <span className="close-label">Marked No Work</span>
+              <span className="close-value">{noWorkWorkers.length}</span>
             </div>
           )}
           {lateWorkers.length > 0 && (
@@ -863,14 +1041,17 @@ function ClockOutModal({ worker, mark, date, shiftConfig, onClose, onSaved }) {
   const [timeOut, setTimeOut] = useState(getCurrentTime());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const isSundayOT = mark.ot_type === 'sunday';
+  const isHolidayOT = mark.ot_type === 'holiday';
+  const isSpecialOT = isSundayOT || isHolidayOT;
 
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
     setError('');
     try {
-      const res = await api.clockOut(worker.id, date, timeOut, hasTimeIn ? undefined : timeIn);
-      onSaved({ ...res, timeOut });
+      const res = await api.clockOut(worker.id, date, timeOut, hasTimeIn ? undefined : timeIn, mark.ot_type);
+      onSaved({ ...res, timeOut, otType: mark.ot_type });
     } catch (err) {
       setError(err.message || 'Could not clock out');
       setBusy(false);
@@ -887,6 +1068,25 @@ function ClockOutModal({ worker, mark, date, shiftConfig, onClose, onSaved }) {
         <h3>Clock Out — {worker.name}</h3>
         <div className="msub">{hasTimeIn ? <>Clocked in at <strong>{mark.time_in}</strong>.</> : 'No clock-in recorded — enter the in-time below.'} System will calculate duty hours, overtime, and wages automatically.</div>
         {error && <div className="error-msg">{error}</div>}
+        {isSpecialOT && (
+          <div className="sv-special-ot-banner" style={{
+            background: isHolidayOT ? 'rgba(139, 92, 246, 0.15)' : 'rgba(249, 115, 22, 0.15)',
+            border: `1px solid ${isHolidayOT ? 'rgba(139, 92, 246, 0.4)' : 'rgba(249, 115, 22, 0.4)'}`,
+            color: isHolidayOT ? '#C4B5FD' : '#FDBA74',
+            padding: '9px 12px',
+            borderRadius: '10px',
+            fontSize: '0.82rem',
+            marginBottom: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: '1.25rem' }}>{isHolidayOT ? '🎉' : '☀️'}</span>
+            <span>
+              <strong>{isHolidayOT ? 'Holiday Overtime' : 'Sunday Overtime'} Shift:</strong> All net hours count as Overtime (Duty hours = 0).
+            </span>
+          </div>
+        )}
         <form onSubmit={submit}>
           {!hasTimeIn && (
             <div className="field">
@@ -913,14 +1113,120 @@ function ClockOutModal({ worker, mark, date, shiftConfig, onClose, onSaved }) {
   );
 }
 
-function AbsentModal({ worker, current, onClose, onSave }) {
+function addDays(isoDate, n) {
+  const d = new Date(isoDate + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+function formatDateFriendly(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+  } catch {
+    return iso;
+  }
+}
+
+const FULL_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+function AbsentModal({ worker, current, currentDate, onClose, onSave, onSaveRange }) {
   const [lt, setLt] = useState(current?.status === 'absent' ? current.leave_type || 'unspecified' : 'emergency');
   const [notes, setNotes] = useState(current?.notes || '');
+
+  // Annual leave range state
+  const baseStart = currentDate || todayStr();
+  const [startDate, setStartDate] = useState(baseStart);
+  const [endDate, setEndDate] = useState(addDays(baseStart, 29)); // Default 30 days
+  const [pickingTarget, setPickingTarget] = useState('start'); // 'start' or 'end'
+  const [busy, setBusy] = useState(false);
+
+  // Explicit calendar view year & month (0..11)
+  const initialD = new Date(baseStart + 'T00:00:00Z');
+  const [calYear, setCalYear] = useState(() => (!isNaN(initialD.getTime()) ? initialD.getUTCFullYear() : new Date().getUTCFullYear()));
+  const [calMonth, setCalMonth] = useState(() => (!isNaN(initialD.getTime()) ? initialD.getUTCMonth() : new Date().getUTCMonth()));
+
+  const daysInMonth = new Date(Date.UTC(calYear, calMonth + 1, 0)).getUTCDate();
+  const firstDow = new Date(Date.UTC(calYear, calMonth, 1)).getUTCDay(); // 0 = Sun
+
+  const diffDays = Math.max(
+    1,
+    Math.round((new Date((endDate || startDate) + 'T00:00:00Z') - new Date((startDate || baseStart) + 'T00:00:00Z')) / 864e5) + 1
+  );
+
+  const handlePrevMonth = () => {
+    setCalMonth((m) => {
+      if (m === 0) {
+        setCalYear((y) => y - 1);
+        return 11;
+      }
+      return m - 1;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setCalMonth((m) => {
+      if (m === 11) {
+        setCalYear((y) => y + 1);
+        return 0;
+      }
+      return m + 1;
+    });
+  };
+
+  const setPreset = (days) => {
+    setEndDate(addDays(startDate, days - 1));
+  };
+
+  const handleDayClick = (dNum) => {
+    const clickedIso = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(dNum).padStart(2, '0')}`;
+    if (pickingTarget === 'start') {
+      setStartDate(clickedIso);
+      if (clickedIso > endDate) {
+        setEndDate(addDays(clickedIso, 29));
+      }
+      setPickingTarget('end');
+    } else {
+      if (clickedIso < startDate) {
+        setStartDate(clickedIso);
+        setPickingTarget('end');
+      } else {
+        setEndDate(clickedIso);
+        setPickingTarget('start');
+      }
+    }
+  };
+
+  const handleSave = async () => {
+    if (lt === 'annual' && onSaveRange) {
+      setBusy(true);
+      try {
+        await onSaveRange({
+          workerId: worker.id,
+          startDate,
+          endDate,
+          leaveType: 'annual',
+          notes: notes.trim() || null,
+        });
+      } finally {
+        setBusy(false);
+      }
+    } else {
+      onSave(lt, notes.trim() || null);
+    }
+  };
+
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className={`modal ${lt === 'annual' ? 'modal-annual' : ''}`} onClick={(e) => e.stopPropagation()}>
         <h3>Mark {worker.name} absent</h3>
         <div className="msub">Select the type of leave. This is what the admin reports will categorize.</div>
+        
         <div className="leave-grid">
           {LEAVES.map(([v, label, icon]) => (
             <div key={v} className={`leave-opt ${lt === v ? 'on' : ''}`} onClick={() => setLt(v)}>
@@ -928,14 +1234,222 @@ function AbsentModal({ worker, current, onClose, onSave }) {
             </div>
           ))}
         </div>
-        <div className="field">
+
+        {lt === 'annual' && (
+          <div className="al-container">
+            {/* Header */}
+            <div className="al-header">
+              <div className="al-header-left">
+                <div className="al-badge-circle">✈️</div>
+                <div className="al-header-titles">
+                  <h4>Annual Leave Schedule</h4>
+                  <p>Click calendar to choose dates or type starting and ending dates below.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Presets */}
+            <div className="al-presets-row">
+              <span className="al-presets-label">Entitlement:</span>
+              <button
+                type="button"
+                className={`al-preset-pill ${diffDays === 15 ? 'active' : ''}`}
+                onClick={() => setPreset(15)}
+              >
+                15 Days
+              </button>
+              <button
+                type="button"
+                className={`al-preset-pill ${diffDays === 21 ? 'active' : ''}`}
+                onClick={() => setPreset(21)}
+              >
+                21 Days
+              </button>
+              <button
+                type="button"
+                className={`al-preset-pill ${diffDays === 30 ? 'active' : ''}`}
+                onClick={() => setPreset(30)}
+              >
+                30 Days (UAE Law)
+              </button>
+            </div>
+
+            {/* Dual Date Inputs Grid (Separately enterable by typing!) */}
+            <div className="al-dates-grid">
+              <div
+                className={`al-date-card ${pickingTarget === 'start' ? 'active-picker' : ''}`}
+                onClick={() => setPickingTarget('start')}
+              >
+                <div className="al-date-header">
+                  <span className="al-date-label">📅 Starting Date</span>
+                  <span className="al-picker-status">
+                    {pickingTarget === 'start' ? '● Tap on calendar' : 'Click to pick'}
+                  </span>
+                </div>
+                <input
+                  type="date"
+                  className="al-type-input"
+                  value={startDate}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPickingTarget('start');
+                  }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (!val) return;
+                    setStartDate(val);
+                    const d = new Date(val + 'T00:00:00Z');
+                    if (!isNaN(d.getTime())) {
+                      setCalYear(d.getUTCFullYear());
+                      setCalMonth(d.getUTCMonth());
+                    }
+                    if (val > endDate) setEndDate(addDays(val, 29));
+                  }}
+                />
+              </div>
+
+              <div className="al-date-arrow-separator">➔</div>
+
+              <div
+                className={`al-date-card ${pickingTarget === 'end' ? 'active-picker' : ''}`}
+                onClick={() => setPickingTarget('end')}
+              >
+                <div className="al-date-header">
+                  <span className="al-date-label">📅 Ending Date</span>
+                  <span className="al-picker-status">
+                    {pickingTarget === 'end' ? '● Tap on calendar' : 'Click to pick'}
+                  </span>
+                </div>
+                <input
+                  type="date"
+                  className="al-type-input"
+                  value={endDate}
+                  min={startDate}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPickingTarget('end');
+                  }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (!val) return;
+                    setEndDate(val);
+                    const d = new Date(val + 'T00:00:00Z');
+                    if (!isNaN(d.getTime())) {
+                      setCalYear(d.getUTCFullYear());
+                      setCalMonth(d.getUTCMonth());
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Calendar Box (White and Blue theme matching employee track page) */}
+            <div className="al-cal-box">
+              <div className="al-cal-topbar">
+                <button
+                  type="button"
+                  className="al-cal-btn"
+                  onClick={handlePrevMonth}
+                  title="Previous month"
+                >
+                  ←
+                </button>
+                <div className="al-cal-selectors">
+                  <select
+                    className="ad-select al-cal-dropdown"
+                    value={calMonth}
+                    onChange={(e) => setCalMonth(Number(e.target.value))}
+                  >
+                    {FULL_MONTHS.map((name, i) => (
+                      <option key={name} value={i}>{name}</option>
+                    ))}
+                  </select>
+                  <select
+                    className="ad-select al-cal-dropdown al-cal-year-dropdown"
+                    value={calYear}
+                    onChange={(e) => setCalYear(Number(e.target.value))}
+                  >
+                    {[2024, 2025, 2026, 2027, 2028].map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  className="al-cal-btn"
+                  onClick={handleNextMonth}
+                  title="Next month"
+                >
+                  →
+                </button>
+              </div>
+
+              <div className="al-cal-grid" key={`${calYear}-${calMonth}`}>
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+                  <div key={i} className="al-hd">{d}</div>
+                ))}
+                {Array.from({ length: firstDow }).map((_, idx) => (
+                  <div key={`empty-${idx}`} className="al-cell empty" />
+                ))}
+                {Array.from({ length: daysInMonth }).map((_, idx) => {
+                  const d = idx + 1;
+                  const iso = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                  const isStart = iso === startDate;
+                  const isEnd = iso === endDate;
+                  const isInRange = iso >= startDate && iso <= endDate;
+
+                  let cls = 'al-cell day-cell';
+                  if (isInRange) cls += ' in-range';
+                  if (isStart) cls += ' start-day';
+                  if (isEnd) cls += ' end-day';
+
+                  return (
+                    <div
+                      key={iso}
+                      className={cls}
+                      onClick={() => handleDayClick(d)}
+                      title={isStart ? 'Start Date' : isEnd ? 'End Date' : isInRange ? 'Annual Leave Day' : `Select ${iso}`}
+                    >
+                      <span className="al-mark">{d}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Summary Bar */}
+            <div className="al-summary-bar">
+              <div className="al-summary-left">
+                <span className="al-summary-count">{diffDays} Days Vacation</span>
+                <span className="al-summary-sub">• Auto-marks absent</span>
+              </div>
+              <div className="al-summary-range">
+                {formatDateFriendly(startDate)} — {formatDateFriendly(endDate)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="field" style={{ marginTop: lt === 'annual' ? 12 : 0 }}>
           <label>Note (optional)</label>
-          <input className="input" value={notes} onChange={(e) => setNotes(e.target.value)}
-            placeholder="e.g. hospitalized, family emergency…" />
+          <input
+            className="input"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder={lt === 'annual' ? 'e.g. Annual vacation abroad, flight booked…' : 'e.g. hospitalized, family emergency…'}
+          />
         </div>
+
         <div className="modal-actions">
-          <button className="btn ghost" onClick={onClose}>Cancel</button>
-          <button className="btn warn" onClick={() => onSave(lt, notes.trim() || null)}>Save absence</button>
+          <button className="btn ghost" onClick={onClose} disabled={busy}>Cancel</button>
+          <button
+            className={`btn ${lt === 'annual' ? 'primary' : 'warn'}`}
+            onClick={handleSave}
+            disabled={busy}
+            style={lt === 'annual' ? { background: 'linear-gradient(135deg, #0284C7, #0EA5E9)', border: 'none', color: '#fff' } : undefined}
+          >
+            {busy ? 'Saving...' : lt === 'annual' ? `Confirm ${diffDays} Days Annual Leave` : 'Save absence'}
+          </button>
         </div>
       </div>
     </div>

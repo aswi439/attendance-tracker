@@ -6,6 +6,7 @@ import Login from './pages/Login.jsx';
 import Supervisor from './pages/Supervisor.jsx';
 import Admin from './pages/Admin.jsx';
 import WorkerDetail from './pages/WorkerDetail.jsx';
+import WorkerPublicVerify from './pages/WorkerPublicVerify.jsx';
 
 const ThemeContext = createContext();
 export function useTheme() { return useContext(ThemeContext); }
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/supervisor" element={<Guard role="supervisor" me={me}><Supervisor me={me} onSignOut={signOut} /></Guard>} />
         <Route path="/admin" element={<Guard role="admin" me={me}><Admin me={me} onSignOut={signOut} /></Guard>} />
         <Route path="/admin/worker/:id" element={<Guard role="admin" me={me}><WorkerDetail me={me} onSignOut={signOut} /></Guard>} />
+        <Route path="/verify/worker/:id" element={<WorkerPublicVerify />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </ThemeContext.Provider>

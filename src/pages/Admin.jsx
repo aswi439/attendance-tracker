@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { api, todayStr } from '../api.js';
+import { api, todayStr, formatExperience } from '../api.js';
 import { useTheme } from '../App.jsx';
 import Ring from '../Ring.jsx';
 import { GlassFold } from '@/components/ui/glass-fold';
@@ -11,25 +11,25 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 const DEFAULT_16_WORKERS = [
-  { id: 'W001', name: 'Shahed Ahmed Siraj', department: 'Ext. Manpower', worker_type: 'contract', designation: 'External Contractor', presentDays: 24, totalDutyHours: 192, totalOvertimeHours: 28, totalWage: 1870, duty_rate_hr: 8.5 },
-  { id: 'W002', name: 'Ahmad Habib', department: 'Ext. Manpower', worker_type: 'contract', designation: 'External Contractor', presentDays: 25, totalDutyHours: 200, totalOvertimeHours: 32, totalWage: 1972, duty_rate_hr: 8.5 },
-  { id: 'W003', name: 'Nascon Buse', department: 'Ext. Manpower', worker_type: 'contract', designation: 'External Contractor', presentDays: 22, totalDutyHours: 176, totalOvertimeHours: 18, totalWage: 2910, duty_rate_hr: 15 },
-  { id: 'W004', name: 'Usaman Transport', department: 'Ext. Manpower', worker_type: 'contract', designation: 'Transport Contractor', presentDays: 26, totalDutyHours: 208, totalOvertimeHours: 40, totalWage: 2480, duty_rate_hr: 10 },
-  { id: 'W005', name: 'Sulthan Abdul Kadar', department: 'Electrical', worker_type: 'company', designation: 'Electrical Engineer', presentDays: 26, totalDutyHours: 208, totalOvertimeHours: 14, totalWage: 3500, duty_rate_hr: 0 },
-  { id: 'W006', name: 'Alli Radha', department: 'General', worker_type: 'company', designation: 'Operations Lead', presentDays: 25, totalDutyHours: 200, totalOvertimeHours: 10, totalWage: 2000, duty_rate_hr: 0 },
-  { id: 'W007', name: 'Prabakaran Selvarasu', department: 'Electrical', worker_type: 'company', designation: 'Electrician Assistant', presentDays: 24, totalDutyHours: 192, totalOvertimeHours: 20, totalWage: 900, duty_rate_hr: 0 },
-  { id: 'W008', name: 'Ganagasabai Subramanian', department: 'Plumbing', worker_type: 'company', designation: 'Plumber', presentDays: 25, totalDutyHours: 200, totalOvertimeHours: 16, totalWage: 1200, duty_rate_hr: 0 },
-  { id: 'W009', name: 'Aravindran Rajendran', department: 'Electrical', worker_type: 'company', designation: 'Electrician Assistant', presentDays: 23, totalDutyHours: 184, totalOvertimeHours: 22, totalWage: 1500, duty_rate_hr: 0 },
-  { id: 'W010', name: 'Arulazhagan Goplakrishnan', department: 'Masonry', worker_type: 'company', designation: 'Brick Layer', presentDays: 26, totalDutyHours: 208, totalOvertimeHours: 30, totalWage: 1600, duty_rate_hr: 0 },
-  { id: 'W011', name: 'Rajiv Nallathampi', department: 'Admin', worker_type: 'company', designation: 'Data Entry Clerk', presentDays: 26, totalDutyHours: 208, totalOvertimeHours: 8, totalWage: 900, duty_rate_hr: 0 },
-  { id: 'W012', name: 'Krishna Samy', department: 'HVAC', worker_type: 'company', designation: 'A/C Mechanic', presentDays: 24, totalDutyHours: 192, totalOvertimeHours: 25, totalWage: 1800, duty_rate_hr: 0 },
-  { id: 'W013', name: 'Krishnarasu Kaliyaperumal', department: 'Mechanical', worker_type: 'company', designation: 'Mechanic Assistant', presentDays: 25, totalDutyHours: 200, totalOvertimeHours: 18, totalWage: 1200, duty_rate_hr: 0 },
-  { id: 'W014', name: 'Moorthy Krishnamoorthy', department: 'General', worker_type: 'company', designation: 'Field Specialist', presentDays: 24, totalDutyHours: 192, totalOvertimeHours: 15, totalWage: 900, duty_rate_hr: 0 },
-  { id: 'W015', name: 'Muppudathi Periyasamy', department: 'Tiling', worker_type: 'company', designation: 'Tile Layer Assistant', presentDays: 25, totalDutyHours: 200, totalOvertimeHours: 22, totalWage: 1300, duty_rate_hr: 0 },
-  { id: 'W016', name: 'Michael Kumarimannan', department: 'Masonry', worker_type: 'company', designation: 'Brick Layer', presentDays: 26, totalDutyHours: 208, totalOvertimeHours: 20, totalWage: 1200, duty_rate_hr: 0 },
+  { id: 'W001', name: 'Shahed Ahmed Siraj', department: 'Ext. Manpower', worker_type: 'contract', designation: 'External Contractor', doj: null, presentDays: 24, totalDutyHours: 192, totalOvertimeHours: 28, totalWage: 1870, duty_rate_hr: 8.5 },
+  { id: 'W002', name: 'Ahmad Habib', department: 'Ext. Manpower', worker_type: 'contract', designation: 'External Contractor', doj: null, presentDays: 25, totalDutyHours: 200, totalOvertimeHours: 32, totalWage: 1972, duty_rate_hr: 8.5 },
+  { id: 'W003', name: 'Nascon Buse', department: 'Ext. Manpower', worker_type: 'contract', designation: 'External Contractor', doj: null, presentDays: 22, totalDutyHours: 176, totalOvertimeHours: 18, totalWage: 2910, duty_rate_hr: 15 },
+  { id: 'W004', name: 'Usaman Transport', department: 'Ext. Manpower', worker_type: 'contract', designation: 'Transport Contractor', doj: null, presentDays: 26, totalDutyHours: 208, totalOvertimeHours: 40, totalWage: 2480, duty_rate_hr: 10 },
+  { id: 'W005', name: 'Sulthan Abdul Kadar', department: 'Electrical', worker_type: 'company', designation: 'Electrical Engineer', doj: '2023-05-01', presentDays: 26, totalDutyHours: 208, totalOvertimeHours: 14, totalWage: 3500, duty_rate_hr: 0 },
+  { id: 'W006', name: 'Alli Radha', department: 'General', worker_type: 'company', designation: 'Operations Lead', doj: '2022-01-27', presentDays: 25, totalDutyHours: 200, totalOvertimeHours: 10, totalWage: 2000, duty_rate_hr: 0 },
+  { id: 'W007', name: 'Prabakaran Selvarasu', department: 'Electrical', worker_type: 'company', designation: 'Electrician Assistant', doj: '2023-06-16', presentDays: 24, totalDutyHours: 192, totalOvertimeHours: 20, totalWage: 900, duty_rate_hr: 0 },
+  { id: 'W008', name: 'Ganagasabai Subramanian', department: 'Plumbing', worker_type: 'company', designation: 'Plumber', doj: '2023-06-16', presentDays: 25, totalDutyHours: 200, totalOvertimeHours: 16, totalWage: 1200, duty_rate_hr: 0 },
+  { id: 'W009', name: 'Aravindran Rajendran', department: 'Electrical', worker_type: 'company', designation: 'Electrician Assistant', doj: '2023-03-28', presentDays: 23, totalDutyHours: 184, totalOvertimeHours: 22, totalWage: 1500, duty_rate_hr: 0 },
+  { id: 'W010', name: 'Arulazhagan Goplakrishnan', department: 'Masonry', worker_type: 'company', designation: 'Brick Layer', doj: '2022-05-14', presentDays: 26, totalDutyHours: 208, totalOvertimeHours: 30, totalWage: 1600, duty_rate_hr: 0 },
+  { id: 'W011', name: 'Rajiv Nallathampi', department: 'Admin', worker_type: 'company', designation: 'Data Entry Clerk', doj: '2022-05-14', presentDays: 26, totalDutyHours: 208, totalOvertimeHours: 8, totalWage: 900, duty_rate_hr: 0 },
+  { id: 'W012', name: 'Krishna Samy', department: 'HVAC', worker_type: 'company', designation: 'A/C Mechanic', doj: '2022-05-14', presentDays: 24, totalDutyHours: 192, totalOvertimeHours: 25, totalWage: 1800, duty_rate_hr: 0 },
+  { id: 'W013', name: 'Krishnarasu Kaliyaperumal', department: 'Mechanical', worker_type: 'company', designation: 'Mechanic Assistant', doj: '2023-04-17', presentDays: 25, totalDutyHours: 200, totalOvertimeHours: 18, totalWage: 1200, duty_rate_hr: 0 },
+  { id: 'W014', name: 'Moorthy Krishnamoorthy', department: 'General', worker_type: 'company', designation: 'Field Specialist', doj: '2023-08-10', presentDays: 24, totalDutyHours: 192, totalOvertimeHours: 15, totalWage: 900, duty_rate_hr: 0 },
+  { id: 'W015', name: 'Muppudathi Periyasamy', department: 'Tiling', worker_type: 'company', designation: 'Tile Layer Assistant', doj: '2023-12-03', presentDays: 25, totalDutyHours: 200, totalOvertimeHours: 22, totalWage: 1300, duty_rate_hr: 0 },
+  { id: 'W016', name: 'Michael Kumarimannan', department: 'Masonry', worker_type: 'company', designation: 'Brick Layer', doj: '2022-05-21', presentDays: 26, totalDutyHours: 208, totalOvertimeHours: 20, totalWage: 1200, duty_rate_hr: 0 },
 ];
 
-const ADMIN_NAV_KEYS = ['dashboard', 'employees', 'manage', 'holidays', 'supervisors'];
+const ADMIN_NAV_KEYS = ['dashboard', 'employees', 'payroll', 'manage', 'holidays', 'supervisors'];
 
 const ADMIN_NAV_ITEMS = [
   {
@@ -53,6 +53,17 @@ const ADMIN_NAV_ITEMS = [
         <circle cx="9" cy="7" r="4" />
         <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
         <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Payroll',
+    fx: 'pulse',
+    icon: (
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="2" y="4" width="20" height="16" rx="2" />
+        <path d="M12 9v6M9 12h6" />
+        <line x1="2" y1="9" x2="22" y2="9" />
       </svg>
     ),
   },
@@ -91,7 +102,7 @@ const ADMIN_NAV_ITEMS = [
 ];
 
 const LEAVE_COLS = [
-  ['ml', 'ML'], ['emergency', 'Emer.'], ['workRelated', 'Work'], ['casual', 'Casual'], ['unpaid', 'Unpaid'], ['unspecified', 'Unspec.'],
+  ['ml', 'ML'], ['annual', 'Annual'], ['emergency', 'Emer.'], ['workRelated', 'Work'], ['casual', 'Casual'], ['unpaid', 'Unpaid'], ['unspecified', 'Unspec.'],
 ];
 
 const UAE_GOVT_HOLIDAYS = [
@@ -118,10 +129,14 @@ function buildExpenseRows(eRows, mp) {
     const trans = (r.transport_monthly || 0) * mp;
     const otherExp = Math.round((r.other_expense_hr || 0) * totalHrs * 100) / 100;
     const totalCost = Math.round(((r.totalWage || 0) + rov + trans + otherExp) * 100) / 100;
-    return [idx + 1, r.name, r.worker_type === 'contract' ? 'Contract' : 'Company', r.designation || '–', r.presentDays, (r.totalDutyHours || 0).toFixed(1), (r.totalOvertimeHours || 0).toFixed(1), Math.round(r.totalDailyWage || 0), Math.round(r.totalOvertimeWage || 0), Math.round(r.totalWage || 0), rov, trans, Math.round(otherExp), Math.round(totalCost)];
+    const dutyPayHr = r.totalDutyHours > 0 ? Math.round(((r.totalDailyWage || 0) / r.totalDutyHours) * 100) / 100 : Number(r.duty_rate_hr || 0);
+    const otPayHr = r.totalOvertimeHours > 0 ? Math.round(((r.totalOvertimeWage || 0) / r.totalOvertimeHours) * 100) / 100 : Number(r.ot_rate || 0);
+    const addlAllow = (r.additional_allowance || 0) * mp;
+    const totalCostFull = Math.round(((r.totalWage || 0) + rov + trans + otherExp + addlAllow) * 100) / 100;
+    return [idx + 1, r.name, r.worker_type === 'contract' ? 'Contract' : 'Company', r.primarySite || '–', r.designation || '–', r.presentDays, (r.totalDutyHours || 0).toFixed(1), (r.totalOvertimeHours || 0).toFixed(1), dutyPayHr, otPayHr, Math.round(r.totalDailyWage || 0), Math.round(r.totalOvertimeWage || 0), Math.round(r.totalWage || 0), rov, trans, Math.round(otherExp), addlAllow, Math.round(totalCostFull)];
   });
 }
-const EXP_COLS = ['#', 'Worker', 'Type', 'Designation', 'Present', 'Duty Hrs', 'OT Hrs', 'Duty Pay', 'OT Pay', 'Total Wages', 'Room/Office/Visa', 'Transport', 'Other Expense', 'Total Cost'];
+const EXP_COLS = ['#', 'Worker', 'Type', 'Site (most freq.)', 'Designation', 'Present', 'Duty Hrs', 'OT Hrs', 'Duty Pay/Hr', 'OT Pay/Hr', 'Duty Pay', 'OT Pay', 'Total Wages', 'Room/Office/Visa', 'Transport', 'Other Expense', 'Addl. Allowance', 'Total Cost'];
 
 function downloadExpense(fmt, eRows, mp, period, year, filterLabel) {
   const rows = buildExpenseRows(eRows, mp);
@@ -130,7 +145,8 @@ function downloadExpense(fmt, eRows, mp, period, year, filterLabel) {
   const totals = EXP_COLS.map((_, ci) => {
     if (ci === 0) return '';
     if (ci === 1) return `Total (${rows.length})`;
-    if (ci <= 3) return '';
+    if (ci <= 4) return '';
+    if (ci === 8 || ci === 9) return '–';
     return rows.reduce((s, r) => s + (Number(r[ci]) || 0), 0);
   });
 
@@ -164,7 +180,282 @@ function downloadExpense(fmt, eRows, mp, period, year, filterLabel) {
   }
 }
 
-const WORKER_REPORT_COLS = ['#', 'Worker', 'ID', 'Department', 'Type', 'Present', 'Late', 'Absent', 'ML', 'Emer.', 'Work', 'Casual', 'Unpaid', 'Unspec.', 'Avg %'];
+const PAYROLL_EXPORT_COLS = ['#', 'Employee', 'ID', 'Department', 'Type', 'Designation', 'Duty Hrs', 'OT Hrs', 'Base Pay (AED)', 'OT Pay (AED)', 'Allowances (AED)', 'Net Pay (AED)'];
+
+function downloadPayrollReport(fmt, payrollWorkers, period, year, filterLabel) {
+  const tag = filterLabel === 'all' ? 'All' : filterLabel === 'company' ? 'Company' : 'ExtWorkers';
+  const fname = `Payroll_${tag}_${period}_${year}`;
+  const rows = payrollWorkers.map((w, idx) => {
+    const isContract = w.worker_type === 'contract';
+    const dutyPay = w.totalDailyWage || 0;
+    const otPay = w.totalOvertimeWage || 0;
+    const addlAllow = Number(w.additional_allowance || 0);
+    const allowance = Number(w.allowance || 0);
+    const basic = Number(w.basic_salary || 0);
+    const basePay = isContract ? dutyPay : basic;
+    const allowancesTotal = isContract ? addlAllow : allowance + addlAllow;
+    const totalPay = isContract
+      ? dutyPay + otPay + addlAllow
+      : basic + allowance + addlAllow + otPay;
+    return [
+      idx + 1,
+      w.name,
+      w.id || '–',
+      w.department || '–',
+      isContract ? 'Contract' : 'Company',
+      w.designation || '–',
+      Number((w.totalDutyHours || 0).toFixed(1)),
+      Number((w.totalOvertimeHours || 0).toFixed(1)),
+      Math.round(basePay),
+      Math.round(otPay),
+      Math.round(allowancesTotal),
+      Math.round(totalPay),
+    ];
+  });
+
+  const totals = [
+    '',
+    `Total (${rows.length})`,
+    '', '', '', '',
+    Number(rows.reduce((s, r) => s + (Number(r[6]) || 0), 0).toFixed(1)),
+    Number(rows.reduce((s, r) => s + (Number(r[7]) || 0), 0).toFixed(1)),
+    rows.reduce((s, r) => s + (Number(r[8]) || 0), 0),
+    rows.reduce((s, r) => s + (Number(r[9]) || 0), 0),
+    rows.reduce((s, r) => s + (Number(r[10]) || 0), 0),
+    rows.reduce((s, r) => s + (Number(r[11]) || 0), 0),
+  ];
+
+  if (fmt === 'pdf') {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    doc.setFontSize(14);
+    doc.text(`Payroll Summary Report — ${tag} — ${period} ${year}`, 14, 16);
+    autoTable(doc, {
+      head: [PAYROLL_EXPORT_COLS],
+      body: rows,
+      foot: [totals],
+      startY: 22,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [30, 41, 59] },
+      footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' },
+    });
+    doc.save(`${fname}.pdf`);
+  } else if (fmt === 'csv') {
+    const lines = [PAYROLL_EXPORT_COLS.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(',')), totals.map(c => `"${c}"`).join(',')];
+    const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${fname}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } else {
+    const ws = XLSX.utils.aoa_to_sheet([PAYROLL_EXPORT_COLS, ...rows, totals]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Payroll Summary');
+    XLSX.writeFile(wb, `${fname}.xlsx`);
+  }
+}
+
+function numToWords(n) {
+  if (n === 0) return 'Zero';
+  const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  function convert(num) {
+    if (num < 20) return ones[num];
+    if (num < 100) return tens[Math.floor(num / 10)] + (num % 10 ? ' ' + ones[num % 10] : '');
+    if (num < 1000) return ones[Math.floor(num / 100)] + ' Hundred' + (num % 100 ? ' and ' + convert(num % 100) : '');
+    if (num < 100000) return convert(Math.floor(num / 1000)) + ' Thousand' + (num % 1000 ? ' ' + convert(num % 1000) : '');
+    if (num < 10000000) return convert(Math.floor(num / 100000)) + ' Lakh' + (num % 100000 ? ' ' + convert(num % 100000) : '');
+    return convert(Math.floor(num / 10000000)) + ' Crore' + (num % 10000000 ? ' ' + convert(num % 10000000) : '');
+  }
+  const whole = Math.floor(Math.abs(n));
+  const fils = Math.round((Math.abs(n) - whole) * 100);
+  let result = 'AED ' + convert(whole);
+  if (fils > 0) result += ' and ' + convert(fils) + ' Fils';
+  return result + ' Only';
+}
+
+let _tplCache = null;
+async function loadPayslipTemplate() {
+  if (_tplCache) return _tplCache;
+  const resp = await fetch('/payslip-template.png');
+  const blob = await resp.blob();
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => { _tplCache = reader.result; resolve(reader.result); };
+    reader.readAsDataURL(blob);
+  });
+}
+
+const P = 210 / 1055;
+const IMG_H = 1491 * P;
+
+function generatePayslipPage(doc, w, monthLabel, year, mp, isFirst, tplImg) {
+  if (!isFirst) doc.addPage();
+
+  doc.addImage(tplImg, 'PNG', 0, 0, 210, IMG_H);
+
+  const dutyHrs = w.totalDutyHours || 0;
+  const otHrs = w.totalOvertimeHours || 0;
+  const dutyPay = w.totalDailyWage || 0;
+  const otPay = w.totalOvertimeWage || 0;
+  const isContract = w.worker_type === 'contract';
+  const dutyRate = dutyHrs > 0 ? dutyPay / dutyHrs : Number(w.duty_rate_hr || 0);
+  const otRate = otHrs > 0 ? otPay / otHrs : Number(w.ot_rate || 0);
+  const basic = Number(w.basic_salary || 0);
+  const allowance = Number(w.allowance || 0);
+  const addlAllow = Number(w.additional_allowance || 0);
+  const absent = w.absentDays || 0;
+  const doj = w.doj ? String(w.doj).slice(0, 10) : '–';
+
+  const totalEarnings = isContract
+    ? dutyPay + otPay + addlAllow
+    : basic + allowance + addlAllow + otPay;
+  const totalDeductions = 0;
+  const netSalary = totalEarnings - totalDeductions;
+
+  const MONTHS = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+  const mName = mp === 1 ? (MONTHS[Number(monthLabel)] || monthLabel) : monthLabel;
+
+  // px helper: converts image pixel x,y to PDF mm (P = 210 / 1055)
+  const x = px => px * P;
+  const y = px => px * P;
+
+  doc.setTextColor(51, 33, 0);
+
+  // ── 1. Month (centered inside the Month pill box at top right) ──
+  // Pill interior: x = 860..1019 -> center = 939.5; y = 231..279 -> center = 255.0
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.text(`${mName} ${year}`, x(939.5), y(255), { align: 'center', baseline: 'middle' });
+
+  // ── 2. Employee Info Box (y = 307..400, vertical center of icon/value row = 362.5) ──
+  // Employee Name: aligned with "Employee Name" label (x = 162), dynamically adjusted if long
+  const nameFontSize = doc.getTextWidth(w.name) > 55 ? 7.5 : 8.5;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(nameFontSize);
+  doc.text(w.name, x(162), y(362.5), { baseline: 'middle', maxWidth: x(280) });
+
+  // Designation: centered directly under "Designation" label (label x = 459..546 -> center = 502.5)
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.text(w.designation || '–', x(502.5), y(362.5), { align: 'center', baseline: 'middle', maxWidth: x(190) });
+
+  // DOJ: placed to the right of the calendar icon (icon: x = 663..688, y = 349..376)
+  // At x = 705, leaving a generous 17px (~3.4 mm) margin past the calendar icon
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.text(doj, x(705), y(362.5), { baseline: 'middle' });
+
+  // Absent Days: placed to the right of the person icon (icon: x = 875..901)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text(String(absent), x(945), y(362.5), { align: 'center', baseline: 'middle' });
+
+  // ── 3. Table Column Centers ──
+  // Details column: x = 383..582 -> Center = 482.5 px
+  // Rate / Amount column: x = 582..845 -> Center = 713.5 px
+  // Amount column: x = 845..1026 -> Center = 935.5 px
+  const cDet  = x(482.5);
+  const cRate = x(713.5);
+  const cAmt  = x(935.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+
+  // ── Row 1: Working Hours (y = 488..531, midpoint = 509.5) ──
+  const rWork = y(509.5);
+  doc.text(`${dutyHrs.toFixed(1)} hrs`, cDet, rWork, { align: 'center', baseline: 'middle' });
+  doc.text(`${dutyRate.toFixed(2)} /hr`, cRate, rWork, { align: 'center', baseline: 'middle' });
+  doc.text(dutyPay.toFixed(2), cAmt, rWork, { align: 'center', baseline: 'middle' });
+
+  // ── Row 2: Overtime Hours (y = 531..573, midpoint = 552.0) ──
+  const rOt = y(552.0);
+  doc.text(`${otHrs.toFixed(1)} hrs`, cDet, rOt, { align: 'center', baseline: 'middle' });
+  doc.text(`${otRate.toFixed(2)} /hr`, cRate, rOt, { align: 'center', baseline: 'middle' });
+  doc.text(otPay.toFixed(2), cAmt, rOt, { align: 'center', baseline: 'middle' });
+
+  // ── Row 3: Leave (y = 573..615, midpoint = 594.0) ──
+  const rLeave = y(594.0);
+  doc.text(`${absent} days`, cDet, rLeave, { align: 'center', baseline: 'middle' });
+  doc.text('–', cRate, rLeave, { align: 'center', baseline: 'middle' });
+  doc.text('–', cAmt, rLeave, { align: 'center', baseline: 'middle' });
+
+  // ── Row 5: EARNINGS Basic (y = 657..697, midpoint = 677.0) ──
+  const rBasic = y(677.0);
+  doc.text('Monthly', cDet, rBasic, { align: 'center', baseline: 'middle' });
+  doc.text(basic.toFixed(2), cRate, rBasic, { align: 'center', baseline: 'middle' });
+  doc.text(basic.toFixed(2), cAmt, rBasic, { align: 'center', baseline: 'middle' });
+
+  // ── Row 6: EARNINGS Allowance (y = 697..736, midpoint = 716.5) ──
+  const rAllow = y(716.5);
+  doc.text('Monthly', cDet, rAllow, { align: 'center', baseline: 'middle' });
+  doc.text(allowance.toFixed(2), cRate, rAllow, { align: 'center', baseline: 'middle' });
+  doc.text(allowance.toFixed(2), cAmt, rAllow, { align: 'center', baseline: 'middle' });
+
+  // ── Row 7: EARNINGS Additional Allowance (y = 736..778, midpoint = 757.0) ──
+  const rAddl = y(757.0);
+  doc.text('Monthly', cDet, rAddl, { align: 'center', baseline: 'middle' });
+  doc.text(addlAllow.toFixed(2), cRate, rAddl, { align: 'center', baseline: 'middle' });
+  doc.text(addlAllow.toFixed(2), cAmt, rAddl, { align: 'center', baseline: 'middle' });
+
+  // ── Row 8: EARNINGS Overtime ( __ Hrs ) (y = 778..821, midpoint = 799.5) ──
+  // In the first column: parenthesis gap is x = 240..303 -> center = 271.5 px
+  const rOtE = y(799.5);
+  doc.text(`${otHrs.toFixed(1)}`, x(271.5), rOtE, { align: 'center', baseline: 'middle' });
+  doc.text(`${otHrs.toFixed(1)} hrs`, cDet, rOtE, { align: 'center', baseline: 'middle' });
+  doc.text(`${otRate.toFixed(2)} /hr`, cRate, rOtE, { align: 'center', baseline: 'middle' });
+  doc.text(otPay.toFixed(2), cAmt, rOtE, { align: 'center', baseline: 'middle' });
+
+  // ── Row 10: DEDUCTIONS Deduction (y = 865..912, midpoint = 888.5) ──
+  const rDed = y(888.5);
+  doc.text('–', cDet, rDed, { align: 'center', baseline: 'middle' });
+  doc.text('–', cRate, rDed, { align: 'center', baseline: 'middle' });
+  doc.text('0.00', cAmt, rDed, { align: 'center', baseline: 'middle' });
+
+  // ── 4. Summary Bar (vertical midpoint of space below labels = 1023.5 px) ──
+  // Label centers: Total Earnings = 214.5 px, Total Deductions = 560.5 px, Net Salary = 849.5 px
+  const rSum = y(1023.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.text(`AED ${totalEarnings.toFixed(2)}`, x(214.5), rSum, { align: 'center', baseline: 'middle' });
+  doc.text(`AED ${totalDeductions.toFixed(2)}`, x(560.5), rSum, { align: 'center', baseline: 'middle' });
+  doc.setFontSize(9.5);
+  doc.text(`AED ${netSalary.toFixed(2)}`, x(849.5), rSum, { align: 'center', baseline: 'middle' });
+
+  // ── 5. Amount in Words (pill y = 1085..1125, midpoint = 1105.0) ──
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text(numToWords(netSalary), x(295), y(1105.0), { maxWidth: 143, baseline: 'middle' });
+
+  // ── 6. Payment Information (vertical midpoint of space below labels = 1201.5 px) ──
+  // Label centers: Paid in = 180.0 px, WPS = 492.5 px, Reference No. = 854.5 px
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  const rPay = y(1201.5);
+  doc.text('Cash / WPS', x(180.0), rPay, { align: 'center', baseline: 'middle' });
+  doc.text('–', x(492.5), rPay, { align: 'center', baseline: 'middle' });
+  doc.text('–', x(854.5), rPay, { align: 'center', baseline: 'middle' });
+}
+
+async function downloadAllPayslips(workers, monthNum, year, mp) {
+  const tplImg = await loadPayslipTemplate();
+  const doc = new jsPDF();
+  workers.forEach((w, i) => generatePayslipPage(doc, w, monthNum, year, mp, i === 0, tplImg));
+  const MONTHS = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+  const mName = mp === 1 ? (MONTHS[Number(monthNum)] || monthNum) : monthNum;
+  doc.save(`Payslips_All_${mName}_${year}.pdf`);
+}
+
+async function downloadSinglePayslip(w, monthNum, year, mp) {
+  const tplImg = await loadPayslipTemplate();
+  const doc = new jsPDF();
+  generatePayslipPage(doc, w, monthNum, year, mp, true, tplImg);
+  const MONTHS = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+  const mName = mp === 1 ? (MONTHS[Number(monthNum)] || monthNum) : monthNum;
+  doc.save(`Payslip_${w.name.replace(/\s+/g, '_')}_${mName}_${year}.pdf`);
+}
+
+const WORKER_REPORT_COLS = ['#', 'Worker', 'ID', 'Department', 'Type', 'Site (most freq.)', 'Experience', 'Present', 'Late', 'Absent', 'No Work', 'ML', 'Annual', 'Emer.', 'Work', 'Casual', 'Unpaid', 'Unspec.', 'Avg %'];
 
 function downloadWorkersReport(fmt, sortedRows, period, year, filterLabel) {
   const tag = filterLabel === 'All' ? 'All' : filterLabel === 'Workers' ? 'Workers' : 'ExtWorkers';
@@ -175,10 +466,14 @@ function downloadWorkersReport(fmt, sortedRows, period, year, filterLabel) {
     r.id,
     r.department || '–',
     r.worker_type === 'contract' ? 'Contract' : 'Company',
+    r.primarySite || '–',
+    formatExperience(r.doj, r.worker_type, r.department),
     r.presentDays ?? 0,
     r.lateDays || 0,
     r.absentDays ?? 0,
+    r.noWorkDays || 0,
     r.ml || 0,
+    r.annual || 0,
     r.emergency || 0,
     r.workRelated || 0,
     r.casual || 0,
@@ -193,10 +488,14 @@ function downloadWorkersReport(fmt, sortedRows, period, year, filterLabel) {
     '',
     '',
     '',
+    '',
+    '',
     (sortedRows || []).reduce((s, r) => s + (r.presentDays || 0), 0),
     (sortedRows || []).reduce((s, r) => s + (r.lateDays || 0), 0),
     (sortedRows || []).reduce((s, r) => s + (r.absentDays || 0), 0),
+    (sortedRows || []).reduce((s, r) => s + (r.noWorkDays || 0), 0),
     (sortedRows || []).reduce((s, r) => s + (r.ml || 0), 0),
+    (sortedRows || []).reduce((s, r) => s + (r.annual || 0), 0),
     (sortedRows || []).reduce((s, r) => s + (r.emergency || 0), 0),
     (sortedRows || []).reduce((s, r) => s + (r.workRelated || 0), 0),
     (sortedRows || []).reduce((s, r) => s + (r.casual || 0), 0),
@@ -260,6 +559,11 @@ export default function Admin({ me, onSignOut }) {
   const [addingWorker, setAddingWorker] = useState(false);
   const [supCanAdd, setSupCanAdd] = useState(false);
   const [supCanAddLoading, setSupCanAddLoading] = useState(true);
+  const [payMonth, setPayMonth] = useState(() => String(now.getMonth() + 1));
+  const [payYear, setPayYear] = useState(() => String(now.getFullYear()));
+  const [paySearch, setPaySearch] = useState('');
+  const [payTypeFilter, setPayTypeFilter] = useState('all');
+  const [downloadingAll, setDownloadingAll] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -333,6 +637,19 @@ export default function Admin({ me, onSignOut }) {
     let va, vb;
     switch (sortKey) {
       case 'name': va = a.name.toLowerCase(); vb = b.name.toLowerCase(); break;
+      case 'experience':
+      case 'doj': {
+        const getExpVal = (w) => {
+          if (!w.doj || w.worker_type === 'contract' || w.department === 'Ext. Manpower') return 0;
+          return new Date(w.doj).getTime() || 0;
+        };
+        va = getExpVal(a);
+        vb = getExpVal(b);
+        if (va === 0 && vb === 0) return 0;
+        if (va === 0) return 1;
+        if (vb === 0) return -1;
+        return sortDir === 'asc' ? vb - va : va - vb;
+      }
       case 'presentDays': va = a.presentDays; vb = b.presentDays; break;
       case 'lateDays': va = a.lateDays; vb = b.lateDays; break;
       case 'absentDays': va = a.absentDays; vb = b.absentDays; break;
@@ -350,6 +667,38 @@ export default function Admin({ me, onSignOut }) {
       {sortKey === colKey && <span className="sort-arrow">{sortDir === 'asc' ? ' ↑' : ' ↓'}</span>}
     </th>
   );
+
+  const rowsSource = (data?.rows && data.rows.length > 0) ? data.rows : DEFAULT_16_WORKERS;
+  const lanyardMembers = rowsSource.map((r, idx) => {
+    const tone = (((idx % 5) + 1));
+    const isContract = r.worker_type === 'contract';
+    const roleTitle = r.designation || (isContract ? 'External Contractor' : 'Company Staff');
+    const dept = r.department || 'Operations';
+    const presentDays = r.presentDays ?? 0;
+    const dutyHrs = Number(r.totalDutyHours || 0).toFixed(0);
+    const otHrs = Number(r.totalOvertimeHours || 0).toFixed(0);
+    const totalWage = Math.round(r.totalWage || 0);
+
+    return {
+      id: String(r.id),
+      name: r.name,
+      role: roleTitle,
+      team: `${dept} · ID: ${r.id}`,
+      tone,
+      image: '',
+      bio: `${r.name} has recorded ${presentDays} days on duty (${dutyHrs}h regular + ${otHrs}h OT) with AED ${totalWage.toLocaleString()} total wages earned this cycle.`,
+      tags: [
+        isContract ? 'Contractor' : 'Company Staff',
+        dept,
+        `${presentDays} Days Present`,
+        isContract ? `AED ${r.duty_rate_hr || 8.5}/hr` : 'Monthly Salaried',
+      ],
+      links: [
+        { label: 'View Track Record →', href: `/admin/worker/${r.id}` },
+        { label: 'View Profile', href: `/admin/worker/${r.id}` },
+      ],
+    };
+  });
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
@@ -437,7 +786,16 @@ export default function Admin({ me, onSignOut }) {
           <div className="ad-stat-icon">👥</div>
           <div className="ad-stat-body">
             <div className="ad-stat-num">{data?.todayStats ? <>{data.todayStats.present}<span>/{data.todayStats.totalWorkers}</span></> : '…'}</div>
-            <div className="ad-stat-label">Present today</div>
+            <div className="ad-stat-label">
+              Present today
+              {data?.todayStats && (
+                <div style={{ fontSize: '11px', marginTop: '4px', opacity: 0.88, display: 'flex', gap: '8px', flexWrap: 'wrap', fontWeight: 600 }}>
+                  <span>Late: <strong style={{ color: '#F59E0B' }}>{data.todayStats.late || 0}</strong></span>
+                  <span>Absent: <strong style={{ color: '#EF4444' }}>{data.todayStats.absent || 0}</strong></span>
+                  <span>No Work: <strong style={{ color: '#94A3B8' }}>{data.todayStats.noWork || 0}</strong></span>
+                </div>
+              )}
+            </div>
           </div>
           <Ring value={data?.todayStats?.present || 0} max={data?.todayStats?.totalWorkers || 1} color="#62C8E6" trackColor="rgba(255,255,255,0.1)" />
         </div>
@@ -529,9 +887,12 @@ export default function Admin({ me, onSignOut }) {
                   <tr>
                     <th className="num th-col-id" style={{ width: 44, textAlign: 'center' }}>#</th>
                     <SortTh colKey="name" label="Worker" className="th-col-worker" />
+                    <th className="th-col-site">Site (most freq.)</th>
+                    <SortTh colKey="experience" label="Experience" className="th-col-exp" style={{ textAlign: 'center' }} />
                     <SortTh colKey="presentDays" label="Present" className="num th-col-present" />
                     <SortTh colKey="lateDays" label="Late" className="num th-col-late" />
                     <SortTh colKey="absentDays" label="Absent" className="num th-col-absent" />
+                    <SortTh colKey="noWorkDays" label="No Work" className="num th-col-nowork" />
                     {LEAVE_COLS.map(([k, l]) => <th key={k} className={`num th-col-${k}`}>{l}</th>)}
                     <SortTh colKey="pct" label="Avg %" className="num th-col-avg" />
                     <th></th>
@@ -542,16 +903,25 @@ export default function Admin({ me, onSignOut }) {
                     <tr key={r.id}>
                       <td className="num">{idx + 1}</td>
                       <td><div className="name">{r.name}</div><div className="dep">{r.department} · {r.id}</div></td>
+                      <td className="th-col-site">{r.primarySite ? <span className="site-pill">{r.primarySite}</span> : <span className="exp-dash">—</span>}</td>
+                      <td className="th-col-exp" style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        {r.worker_type === 'contract' || r.department === 'Ext. Manpower' || !r.doj ? (
+                          <span className="exp-dash">—</span>
+                        ) : (
+                          <span className="exp-pill">{formatExperience(r.doj, r.worker_type, r.department)}</span>
+                        )}
+                      </td>
                       <td className="num">{r.presentDays}</td>
                       <td className="num" style={{ color: r.lateDays ? '#F59E0B' : 'inherit' }}>{r.lateDays || '–'}</td>
                       <td className="num">{r.absentDays}</td>
+                      <td className="num" style={{ color: r.noWorkDays ? '#64748B' : 'inherit' }}>{r.noWorkDays || '–'}</td>
                       {LEAVE_COLS.map(([k]) => <td key={k} className="num" style={{ color: r[k] ? '#f0a54c' : 'inherit' }}>{r[k] || '–'}</td>)}
                       <td className="num">{r.pct != null && <span className={`pct ${r.pct < 80 ? 'low' : ''}`}>{r.pct}%</span>}</td>
                       <td><Link className="rowlink" to={`/admin/worker/${r.id}`}>Track record →</Link></td>
                     </tr>
                   ))}
                   {sorted.length === 0 && (
-                    <tr><td colSpan={12} className="muted" style={{ textAlign: 'center', padding: 28 }}>{search || deptFilter !== 'All' ? 'No workers match the current filter.' : 'No worker data yet.'}</td></tr>
+                    <tr><td colSpan={16} className="muted" style={{ textAlign: 'center', padding: 28 }}>{search || deptFilter !== 'All' ? 'No workers match the current filter.' : 'No worker data yet.'}</td></tr>
                   )}
                 </tbody>
               </table>
@@ -561,6 +931,14 @@ export default function Admin({ me, onSignOut }) {
             </div>
           ) : null}
         </div>
+      </div>
+
+      {/* Hanging Team Lanyard Rail / Sliding Card Animation in Dashboard at the very bottom separately */}
+      <div style={{ width: '100%', margin: '40px 0 24px 0', position: 'relative' }}>
+        <TeamLanyardRail
+          items={lanyardMembers}
+          autoplay={false}
+        />
       </div>
 
       </>}
@@ -580,47 +958,7 @@ export default function Admin({ me, onSignOut }) {
         }, 0);
         const sumTotal = sumWages + sumAdditional;
 
-        const rowsSource = (allRows && allRows.length > 0) ? allRows : DEFAULT_16_WORKERS;
-        const lanyardMembers = rowsSource.map((r, idx) => {
-          const tone = (((idx % 5) + 1));
-          const isContract = r.worker_type === 'contract';
-          const roleTitle = r.designation || (isContract ? 'External Contractor' : 'Company Staff');
-          const dept = r.department || 'Operations';
-          const presentDays = r.presentDays ?? 0;
-          const dutyHrs = Number(r.totalDutyHours || 0).toFixed(0);
-          const otHrs = Number(r.totalOvertimeHours || 0).toFixed(0);
-          const totalWage = Math.round(r.totalWage || 0);
-
-          return {
-            id: String(r.id),
-            name: r.name,
-            role: roleTitle,
-            team: `${dept} · ID: ${r.id}`,
-            tone,
-            image: '',
-            bio: `${r.name} has recorded ${presentDays} days on duty (${dutyHrs}h regular + ${otHrs}h OT) with AED ${totalWage.toLocaleString()} total wages earned this cycle.`,
-            tags: [
-              isContract ? 'Contractor' : 'Company Staff',
-              dept,
-              `${presentDays} Days Present`,
-              isContract ? `AED ${r.duty_rate_hr || 8.5}/hr` : 'Monthly Salaried',
-            ],
-            links: [
-              { label: 'View Track Record →', href: `/admin/worker/${r.id}` },
-              { label: 'View Profile', href: `/admin/worker/${r.id}` },
-            ],
-          };
-        });
-
         return <>
-        {/* Hanging Team Lanyard Rail for all 16 employees - rod with tags alone */}
-        <div style={{ width: '100%', margin: '0 0 24px 0', position: 'relative' }}>
-          <TeamLanyardRail
-            items={lanyardMembers}
-            autoplay={false}
-          />
-        </div>
-
         <div className="ad-stats">
           <div className="ad-stat">
             <div className="ad-stat-icon">👥</div>
@@ -707,16 +1045,21 @@ export default function Admin({ me, onSignOut }) {
                       <th className="num th-col-id">#</th>
                       <th className="th-col-worker">Worker</th>
                       <th className="th-col-type">Type</th>
+                      <th className="th-col-site">Site (most freq.)</th>
                       <th className="th-col-desig">Designation</th>
+                      <th className="th-col-exp">Experience</th>
                       <th className="num th-col-present">Present</th>
                       <th className="num th-col-hours">Duty Hrs</th>
                       <th className="num th-col-hours">OT Hrs</th>
+                      <th className="num th-col-rate">Duty Pay/Hr</th>
+                      <th className="num th-col-rate">OT Pay/Hr</th>
                       <th className="num th-col-wage">Duty Pay</th>
                       <th className="num th-col-wage">OT Pay</th>
                       <th className="num th-col-wage-total">Total Wages</th>
                       <th className="num th-col-overhead">Room/Office/Visa</th>
                       <th className="num th-col-overhead">Transport</th>
                       <th className="num th-col-overhead">Other Expense</th>
+                      <th className="num th-col-overhead">Addl. Allowance</th>
                       <th className="num th-col-cost-total">Total Cost</th>
                     </tr>
                   </thead>
@@ -726,22 +1069,36 @@ export default function Admin({ me, onSignOut }) {
                       const trans = (r.transport_monthly || 0) * mp;
                       const totalHrs = (r.totalDutyHours || 0) + (r.totalOvertimeHours || 0);
                       const otherExp = Math.round((r.other_expense_hr || 0) * totalHrs * 100) / 100;
-                      const totalCost = Math.round(((r.totalWage || 0) + rov + trans + otherExp) * 100) / 100;
+                      const addlAllow = (r.additional_allowance || 0) * mp;
+                      const totalCost = Math.round(((r.totalWage || 0) + rov + trans + otherExp + addlAllow) * 100) / 100;
+                      const dutyPayHr = r.totalDutyHours > 0 ? ((r.totalDailyWage || 0) / r.totalDutyHours) : Number(r.duty_rate_hr || 0);
+                      const otPayHr = r.totalOvertimeHours > 0 ? ((r.totalOvertimeWage || 0) / r.totalOvertimeHours) : Number(r.ot_rate || 0);
                       return (
                         <tr key={r.id}>
                           <td className="num">{idx + 1}</td>
                           <td><div className="name">{r.name}</div><div className="dep">{r.department} · {r.id}</div></td>
                           <td>{r.worker_type === 'contract' ? 'Contract' : 'Company'}</td>
+                          <td className="th-col-site">{r.primarySite ? <span className="site-pill">{r.primarySite}</span> : <span className="exp-dash">—</span>}</td>
                           <td>{r.designation || '–'}</td>
+                          <td className="th-col-exp" style={{ whiteSpace: 'nowrap' }}>
+                            {r.worker_type === 'contract' || r.department === 'Ext. Manpower' || !r.doj ? (
+                              <span className="exp-dash">—</span>
+                            ) : (
+                              <span className="exp-pill">{formatExperience(r.doj, r.worker_type, r.department)}</span>
+                            )}
+                          </td>
                           <td className="num">{r.presentDays}</td>
                           <td className="num">{r.totalDutyHours ? r.totalDutyHours.toFixed(1) : '–'}</td>
                           <td className="num">{r.totalOvertimeHours ? r.totalOvertimeHours.toFixed(1) : '–'}</td>
+                          <td className="num">{dutyPayHr ? dutyPayHr.toFixed(2) : '–'}</td>
+                          <td className="num">{otPayHr ? otPayHr.toFixed(2) : '–'}</td>
                           <td className="num">{r.totalDailyWage ? r.totalDailyWage.toLocaleString() : '–'}</td>
                           <td className="num">{r.totalOvertimeWage ? r.totalOvertimeWage.toLocaleString() : '–'}</td>
                           <td className="num"><strong>{r.totalWage ? r.totalWage.toLocaleString() : '–'}</strong></td>
                           <td className="num">{rov ? rov.toLocaleString() : '–'}</td>
                           <td className="num">{trans ? trans.toLocaleString() : '–'}</td>
                           <td className="num">{otherExp ? otherExp.toLocaleString() : '–'}</td>
+                          <td className="num">{addlAllow ? addlAllow.toLocaleString() : '–'}</td>
                           <td className="num"><strong>{totalCost ? totalCost.toLocaleString() : '–'}</strong></td>
                         </tr>
                       );
@@ -754,16 +1111,20 @@ export default function Admin({ me, onSignOut }) {
                         <td className="th-col-worker">Total ({eRows.length} workers)</td>
                         <td className="th-col-type"></td>
                         <td className="th-col-desig"></td>
+                        <td className="th-col-exp"></td>
                         <td className="num th-col-present">{eRows.reduce((s, r) => s + (r.presentDays || 0), 0)}</td>
                         <td className="num th-col-hours">{eRows.reduce((s, r) => s + (r.totalDutyHours || 0), 0).toFixed(1)}</td>
                         <td className="num th-col-hours">{eRows.reduce((s, r) => s + (r.totalOvertimeHours || 0), 0).toFixed(1)}</td>
+                        <td className="num th-col-rate">–</td>
+                        <td className="num th-col-rate">–</td>
                         <td className="num th-col-wage">{Math.round(eRows.reduce((s, r) => s + (r.totalDailyWage || 0), 0)).toLocaleString()}</td>
                         <td className="num th-col-wage">{Math.round(eRows.reduce((s, r) => s + (r.totalOvertimeWage || 0), 0)).toLocaleString()}</td>
                         <td className="num th-col-wage-total"><strong>{Math.round(sumWages).toLocaleString()}</strong></td>
                         <td className="num th-col-overhead">{(eRows.reduce((s, r) => s + (r.rov_monthly || 0), 0) * mp).toLocaleString()}</td>
                         <td className="num th-col-overhead">{(eRows.reduce((s, r) => s + (r.transport_monthly || 0), 0) * mp).toLocaleString()}</td>
                         <td className="num th-col-overhead">{Math.round(eRows.reduce((s, r) => s + (r.other_expense_hr || 0) * ((r.totalDutyHours || 0) + (r.totalOvertimeHours || 0)), 0)).toLocaleString()}</td>
-                        <td className="num th-col-cost-total"><strong>{Math.round(sumTotal).toLocaleString()}</strong></td>
+                        <td className="num th-col-overhead">{(eRows.reduce((s, r) => s + (r.additional_allowance || 0), 0) * mp).toLocaleString()}</td>
+                        <td className="num th-col-cost-total"><strong>{Math.round(eRows.reduce((s, r) => { const th = (r.totalDutyHours||0)+(r.totalOvertimeHours||0); return s + (r.totalWage||0) + (r.rov_monthly||0)*mp + (r.transport_monthly||0)*mp + (r.other_expense_hr||0)*th + (r.additional_allowance||0)*mp; }, 0)).toLocaleString()}</strong></td>
                       </tr>
                     </tfoot>
                   )}
@@ -775,7 +1136,424 @@ export default function Admin({ me, onSignOut }) {
         </>;
       })()}
 
+      {activeTab === 'payroll' && (() => {
+        const allWorkers = (data?.rows && data.rows.length > 0) ? data.rows : DEFAULT_16_WORKERS;
+
+        const companyCount = allWorkers.filter(w => w.worker_type === 'company' || (w.worker_type !== 'contract' && w.department !== 'Ext. Manpower')).length;
+        const contractCount = allWorkers.filter(w => w.worker_type === 'contract' || w.department === 'Ext. Manpower').length;
+
+        let filtered = allWorkers;
+        if (payTypeFilter === 'company') {
+          filtered = filtered.filter(w => w.worker_type === 'company' || (w.worker_type !== 'contract' && w.department !== 'Ext. Manpower'));
+        } else if (payTypeFilter === 'contract') {
+          filtered = filtered.filter(w => w.worker_type === 'contract' || w.department === 'Ext. Manpower');
+        }
+
+        if (paySearch.trim()) {
+          const q = paySearch.toLowerCase().trim();
+          filtered = filtered.filter(w =>
+            (w.name || '').toLowerCase().includes(q) ||
+            (w.designation || '').toLowerCase().includes(q) ||
+            (w.department || '').toLowerCase().includes(q) ||
+            (w.id || '').toLowerCase().includes(q)
+          );
+        }
+
+        // Global stats across all workers on payroll for current period
+        let sumTotalDisbursed = 0;
+        let sumTotalDutyHrs = 0;
+        let sumTotalOtHrs = 0;
+        let sumTotalOtPay = 0;
+
+        allWorkers.forEach(w => {
+          const isContract = w.worker_type === 'contract';
+          const dutyPay = w.totalDailyWage || 0;
+          const otPay = w.totalOvertimeWage || 0;
+          const addlAllow = Number(w.additional_allowance || 0);
+          const allowance = Number(w.allowance || 0);
+          const basic = Number(w.basic_salary || 0);
+          const totalPay = isContract
+            ? dutyPay + otPay + addlAllow
+            : basic + allowance + addlAllow + otPay;
+          sumTotalDisbursed += totalPay;
+          sumTotalDutyHrs += (w.totalDutyHours || 0);
+          sumTotalOtHrs += (w.totalOvertimeHours || 0);
+          sumTotalOtPay += otPay;
+        });
+
+        // Totals for filtered table in tfoot
+        let footDutyHrs = 0;
+        let footOtHrs = 0;
+        let footBasePay = 0;
+        let footOtPay = 0;
+        let footTotalPay = 0;
+
+        filtered.forEach(w => {
+          const isContract = w.worker_type === 'contract';
+          const dutyPay = w.totalDailyWage || 0;
+          const otPay = w.totalOvertimeWage || 0;
+          const addlAllow = Number(w.additional_allowance || 0);
+          const allowance = Number(w.allowance || 0);
+          const basic = Number(w.basic_salary || 0);
+          const basePay = isContract ? dutyPay : basic;
+          const totalPay = isContract
+            ? dutyPay + otPay + addlAllow
+            : basic + allowance + addlAllow + otPay;
+          footDutyHrs += (w.totalDutyHours || 0);
+          footOtHrs += (w.totalOvertimeHours || 0);
+          footBasePay += basePay;
+          footOtPay += otPay;
+          footTotalPay += totalPay;
+        });
+
+        return (
+          <>
+            {/* Bento stat cards matching other tabs */}
+            <div className="ad-stats">
+              <div className="ad-stat ad-stat-accent">
+                <div className="ad-stat-icon">💳</div>
+                <div className="ad-stat-body">
+                  <div className="ad-stat-num ad-stat-num-currency">
+                    AED {Math.round(sumTotalDisbursed).toLocaleString()}
+                  </div>
+                  <div className="ad-stat-label">Total Payroll · {monthName(payMonth)} {payYear}</div>
+                </div>
+              </div>
+
+              <div className="ad-stat">
+                <div className="ad-stat-icon">👥</div>
+                <div className="ad-stat-body">
+                  <div className="ad-stat-num">{allWorkers.length}</div>
+                  <div className="ad-stat-label">Workforce on Payroll</div>
+                </div>
+              </div>
+
+              <div className="ad-stat">
+                <div className="ad-stat-icon">⏱️</div>
+                <div className="ad-stat-body">
+                  <div className="ad-stat-num">{sumTotalDutyHrs.toFixed(1)}<span>hrs</span></div>
+                  <div className="ad-stat-label">Regular Duty Hours</div>
+                </div>
+              </div>
+
+              <div className="ad-stat ad-stat-orange">
+                <div className="ad-stat-icon">⚡</div>
+                <div className="ad-stat-body">
+                  <div className="ad-stat-num">{sumTotalOtHrs.toFixed(1)}<span>hrs</span></div>
+                  <div className="ad-stat-label">Overtime (AED {Math.round(sumTotalOtPay).toLocaleString()})</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Payroll Card Wrapper with polished glowing glass border */}
+            <div className="ad-card-wrapper">
+              <div className="ad-card-border-glow" aria-hidden="true" />
+              <div className="ad-card">
+                <div className="ad-card-shine-line" aria-hidden="true" />
+                <div className="ad-card-corner-blob" aria-hidden="true" />
+
+                <div className="ad-card-head">
+                  <div>
+                    <h2 className="ad-card-title">Payroll — {monthName(payMonth)} {payYear}</h2>
+                    <p className="ad-card-sub">Generate and download individual or batch employee payslips, track duty wages, overtime, and allowances.</p>
+                  </div>
+
+                  <div className="ad-header-actions" style={{ marginLeft: 'auto', flexWrap: 'wrap' }}>
+                    <div className="ad-date-selects">
+                      <select
+                        className="ad-select"
+                        value={Number(payMonth)}
+                        onChange={e => {
+                          const m = e.target.value;
+                          setPayMonth(m);
+                          setMonth(String(m).padStart(2, '0'));
+                        }}
+                      >
+                        {['January','February','March','April','May','June','July','August','September','October','November','December'].map((m, i) => (
+                          <option key={i + 1} value={i + 1}>{m}</option>
+                        ))}
+                      </select>
+                      <select
+                        className="ad-select"
+                        value={payYear}
+                        onChange={e => {
+                          const y = e.target.value;
+                          setPayYear(y);
+                          setYear(String(y));
+                        }}
+                      >
+                        {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map(y => (
+                          <option key={y} value={y}>{y}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="ad-export-btns" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <button
+                        className="ad-btn ad-btn-export-pdf"
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '7px 14px' }}
+                        disabled={downloadingAll || !filtered.length}
+                        onClick={async () => {
+                          if (!filtered.length || downloadingAll) return;
+                          setDownloadingAll(true);
+                          try {
+                            await downloadAllPayslips(filtered, payMonth, payYear, 1);
+                          } finally {
+                            setDownloadingAll(false);
+                          }
+                        }}
+                        title="Download A4 Payslip PDF batch for all visible employees"
+                      >
+                        <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        <span>{downloadingAll ? 'Generating PDFs...' : 'All Payslips (PDF)'}</span>
+                      </button>
+
+                      <button
+                        className="ad-btn ad-btn-export-xlsx"
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '7px 14px' }}
+                        onClick={() => downloadPayrollReport('xlsx', filtered, monthName(payMonth), payYear, payTypeFilter)}
+                        title="Export payroll table to Excel"
+                      >
+                        <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                        <span>Excel</span>
+                      </button>
+
+                      <button
+                        className="ad-btn ad-btn-export-csv"
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '7px 14px' }}
+                        onClick={() => downloadPayrollReport('csv', filtered, monthName(payMonth), payYear, payTypeFilter)}
+                        title="Export payroll table to CSV"
+                      >
+                        CSV
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="ad-table-toolbar">
+                  <div className="ad-chips">
+                    <button
+                      className={`ad-chip${payTypeFilter === 'all' ? ' active' : ''}`}
+                      onClick={() => setPayTypeFilter('all')}
+                    >
+                      All ({allWorkers.length})
+                    </button>
+                    <button
+                      className={`ad-chip${payTypeFilter === 'company' ? ' active' : ''}`}
+                      onClick={() => setPayTypeFilter('company')}
+                    >
+                      Company Workers ({companyCount})
+                    </button>
+                    <button
+                      className={`ad-chip${payTypeFilter === 'contract' ? ' active' : ''}`}
+                      onClick={() => setPayTypeFilter('contract')}
+                    >
+                      Ext. Workers ({contractCount})
+                    </button>
+                  </div>
+
+                  <div className="ad-toolbar-actions">
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <svg
+                        width="14"
+                        height="14"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        style={{ position: 'absolute', left: 12, opacity: 0.5, pointerEvents: 'none' }}
+                      >
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg>
+                      <input
+                        className="ad-input"
+                        placeholder="Search employee, designation, ID..."
+                        value={paySearch}
+                        onChange={e => setPaySearch(e.target.value)}
+                        style={{ paddingLeft: 34, width: 280 }}
+                      />
+                      {paySearch && (
+                        <button
+                          onClick={() => setPaySearch('')}
+                          style={{
+                            position: 'absolute',
+                            right: 10,
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            opacity: 0.6,
+                            padding: 2,
+                            display: 'flex',
+                          }}
+                          title="Clear search"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {!data && !err ? (
+                  <div className="admin-skeleton">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="skeleton-row">
+                        <div className="skeleton-cell wide" />
+                        <div className="skeleton-cell" />
+                        <div className="skeleton-cell" />
+                        <div className="skeleton-cell" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="ad-table-container">
+                    <table className="tbl">
+                      <thead>
+                        <tr>
+                          <th className="num th-col-id" style={{ width: 44, textAlign: 'center' }}>#</th>
+                          <th className="th-col-worker">Employee</th>
+                          <th className="th-col-desig">Designation</th>
+                          <th className="th-col-type">Type</th>
+                          <th className="num th-col-hours">Duty Hrs</th>
+                          <th className="num th-col-hours">OT Hrs</th>
+                          <th className="num th-col-wage">Base Pay</th>
+                          <th className="num th-col-wage">OT Pay</th>
+                          <th className="num th-col-wage-total">Net Pay (AED)</th>
+                          <th style={{ width: 130, textAlign: 'center' }}>Payslip</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map((w, idx) => {
+                          const isContract = w.worker_type === 'contract';
+                          const dutyPay = w.totalDailyWage || 0;
+                          const otPay = w.totalOvertimeWage || 0;
+                          const addlAllow = Number(w.additional_allowance || 0);
+                          const allowance = Number(w.allowance || 0);
+                          const basic = Number(w.basic_salary || 0);
+                          const basePay = isContract ? dutyPay : basic;
+                          const totalPay = isContract
+                            ? dutyPay + otPay + addlAllow
+                            : basic + allowance + addlAllow + otPay;
+
+                          return (
+                            <tr key={w.id || idx}>
+                              <td className="num">{idx + 1}</td>
+                              <td>
+                                <div className="name">{w.name}</div>
+                                <div className="dep">{w.department || '–'} · {w.id}</div>
+                              </td>
+                              <td>{w.designation || '–'}</td>
+                              <td>
+                                <span className={`worker-type-badge ${isContract ? 'contract' : 'company'}`}>
+                                  {isContract ? 'Contract' : 'Company'}
+                                </span>
+                              </td>
+                              <td className="num">{(w.totalDutyHours || 0).toFixed(1)}</td>
+                              <td className="num">
+                                {(w.totalOvertimeHours || 0) > 0 ? (
+                                  <span style={{ color: '#F59E0B', fontWeight: 600 }}>{(w.totalOvertimeHours).toFixed(1)}</span>
+                                ) : (
+                                  '–'
+                                )}
+                              </td>
+                              <td className="num">{Math.round(basePay).toLocaleString()}</td>
+                              <td className="num">
+                                {Math.round(otPay) > 0 ? (
+                                  <span style={{ color: '#F59E0B' }}>{Math.round(otPay).toLocaleString()}</span>
+                                ) : (
+                                  '–'
+                                )}
+                              </td>
+                              <td className="num">
+                                <strong>AED {totalPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                              </td>
+                              <td style={{ textAlign: 'center' }}>
+                                <button
+                                  className="ad-btn ad-btn-primary"
+                                  style={{ padding: '6px 14px', fontSize: 12, borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 5 }}
+                                  onClick={() => downloadSinglePayslip(w, payMonth, payYear, 1)}
+                                  title={`Download A4 payslip PDF for ${w.name}`}
+                                >
+                                  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="7 10 12 15 17 10" />
+                                    <line x1="12" y1="15" x2="12" y2="3" />
+                                  </svg>
+                                  <span>Payslip</span>
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {filtered.length === 0 && (
+                          <tr>
+                            <td colSpan={10} className="muted" style={{ textAlign: 'center', padding: '36px 12px' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, opacity: 0.7 }}>
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                  <circle cx="11" cy="11" r="8" />
+                                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                </svg>
+                                <div>No employees found matching {paySearch ? `"${paySearch}"` : 'the selected filter'}.</div>
+                                {paySearch && (
+                                  <button
+                                    className="ad-btn"
+                                    style={{ fontSize: 12, marginTop: 4, padding: '4px 12px' }}
+                                    onClick={() => setPaySearch('')}
+                                  >
+                                    Clear search filter
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                      {filtered.length > 0 && (
+                        <tfoot>
+                          <tr style={{ fontWeight: 700 }}>
+                            <td className="th-col-id"></td>
+                            <td className="th-col-worker">Total ({filtered.length} employees)</td>
+                            <td className="th-col-desig"></td>
+                            <td className="th-col-type"></td>
+                            <td className="num th-col-hours">{footDutyHrs.toFixed(1)}</td>
+                            <td className="num th-col-hours">{footOtHrs.toFixed(1)}</td>
+                            <td className="num th-col-wage">AED {Math.round(footBasePay).toLocaleString()}</td>
+                            <td className="num th-col-wage">AED {Math.round(footOtPay).toLocaleString()}</td>
+                            <td className="num th-col-wage-total">
+                              <strong>AED {footTotalPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                            </td>
+                            <td></td>
+                          </tr>
+                        </tfoot>
+                      )}
+                    </table>
+                    {filtered.length > 0 && (
+                      <div className="tbl-note">
+                        Showing {filtered.length} of {allWorkers.length} employees
+                        {payTypeFilter !== 'all' ? ` (${payTypeFilter === 'company' ? 'Company Workers' : 'External Manpower'})` : ''}
+                        {paySearch ? ` matching "${paySearch}"` : ''} · Currency: AED
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        );
+      })()}
+
       {activeTab === 'manage' && (
+        <>
         <div className="ad-card-wrapper">
           <div className="ad-card-border-glow" aria-hidden="true" />
           <div className="ad-card">
@@ -815,6 +1593,7 @@ export default function Admin({ me, onSignOut }) {
                       <th className="th-col-type">Type</th>
                       <th className="th-col-desig">Designation</th>
                       <th className="th-col-doj">DOJ</th>
+                      <th className="th-col-exp">Experience</th>
                       <th className="num th-col-wage">Basic</th>
                       <th className="num th-col-wage">Allowance</th>
                       <th className="num th-col-hours">Duty Rate/hr</th>
@@ -822,6 +1601,7 @@ export default function Admin({ me, onSignOut }) {
                       <th className="num th-col-overhead">ROV/mo</th>
                       <th className="num th-col-overhead">Transport/mo</th>
                       <th className="num th-col-overhead">Other Exp/hr</th>
+                      <th className="num th-col-overhead">Addl. Allow/mo</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -835,6 +1615,13 @@ export default function Admin({ me, onSignOut }) {
                         <td>{w.worker_type === 'contract' ? 'Contract' : 'Company'}</td>
                         <td>{w.designation || '–'}</td>
                         <td>{w.doj ? new Date(w.doj + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '–'}</td>
+                        <td className="th-col-exp" style={{ whiteSpace: 'nowrap' }}>
+                          {w.worker_type === 'contract' || w.department === 'Ext. Manpower' || !w.doj ? (
+                            <span className="exp-dash">—</span>
+                          ) : (
+                            <span className="exp-pill">{formatExperience(w.doj, w.worker_type, w.department)}</span>
+                          )}
+                        </td>
                         <td className="num">{w.basic_salary || '–'}</td>
                         <td className="num">{w.allowance || '–'}</td>
                         <td className="num">{w.duty_rate_hr || '–'}</td>
@@ -842,6 +1629,7 @@ export default function Admin({ me, onSignOut }) {
                         <td className="num">{w.rov_monthly || '–'}</td>
                         <td className="num">{w.transport_monthly || '–'}</td>
                         <td className="num">{w.other_expense_hr || '–'}</td>
+                        <td className="num">{w.additional_allowance || '–'}</td>
                         <td><button className="rowlink" onClick={() => setEditingWorker(w)}>Edit</button></td>
                       </tr>
                     ))}
@@ -851,6 +1639,8 @@ export default function Admin({ me, onSignOut }) {
             )}
           </div>
         </div>
+        <CompanyManager />
+        </>
       )}
 
       {activeTab === 'holidays' && (
@@ -1282,6 +2072,7 @@ function EditWorkerModal({ worker, onClose, onSaved }) {
     rovMonthly: worker.rov_monthly || 0,
     transportMonthly: worker.transport_monthly || 0,
     otherExpenseHr: worker.other_expense_hr || 0,
+    additionalAllowance: worker.additional_allowance || 0,
   });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -1368,6 +2159,10 @@ function EditWorkerModal({ worker, onClose, onSaved }) {
               <label>Other Expense / hr (AED)</label>
               <input className="input" type="number" step="0.01" value={form.otherExpenseHr} onChange={e => set('otherExpenseHr', e.target.value)} />
             </div>
+            <div className="field">
+              <label>Additional Allowance / mo (AED)</label>
+              <input className="input" type="number" step="0.01" value={form.additionalAllowance} onChange={e => set('additionalAllowance', e.target.value)} />
+            </div>
           </div>
           <div className="modal-actions">
             <button type="button" className="btn ghost" onClick={onClose}>Cancel</button>
@@ -1386,7 +2181,7 @@ function AddWorkerModal({ onClose, onSaved }) {
     name: '', department: '', designation: '',
     workerType: 'company', basicSalary: '', allowance: '',
     otRate: '', dutyRateHr: '', doj: '',
-    rovMonthly: '', transportMonthly: '', otherExpenseHr: '',
+    rovMonthly: '', transportMonthly: '', otherExpenseHr: '', additionalAllowance: '',
   });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -1410,6 +2205,7 @@ function AddWorkerModal({ onClose, onSaved }) {
         rovMonthly: Number(form.rovMonthly) || 0,
         transportMonthly: Number(form.transportMonthly) || 0,
         otherExpenseHr: Number(form.otherExpenseHr) || 0,
+        additionalAllowance: Number(form.additionalAllowance) || 0,
       });
       onSaved();
     } catch (err) {
@@ -1482,6 +2278,10 @@ function AddWorkerModal({ onClose, onSaved }) {
             <div className="field">
               <label>Other Expense / hr (AED)</label>
               <input className="input" type="number" step="0.01" value={form.otherExpenseHr} onChange={e => set('otherExpenseHr', e.target.value)} placeholder={isContract ? '3.66' : '5.82'} />
+            </div>
+            <div className="field">
+              <label>Additional Allowance / mo (AED)</label>
+              <input className="input" type="number" step="0.01" value={form.additionalAllowance} onChange={e => set('additionalAllowance', e.target.value)} placeholder="0" />
             </div>
           </div>
           <div className="modal-actions">
@@ -1566,4 +2366,258 @@ function monthName(m) {
 function years() {
   const y = new Date().getFullYear();
   return [y + 1, y, y - 1, y - 2];
+}
+
+function CompanyManager() {
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [addBusy, setAddBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [editingCompany, setEditingCompany] = useState(null);
+  const [toggling, setToggling] = useState(new Set());
+
+  useEffect(() => {
+    loadCompanies();
+  }, []);
+
+  function loadCompanies() {
+    setLoading(true);
+    api.companies(true)
+      .then((d) => { setCompanies(d.companies || []); setLoading(false); })
+      .catch((e) => { setErr(e.message); setLoading(false); });
+  }
+
+  async function handleAdd(e) {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    setAddBusy(true);
+    setErr('');
+    try {
+      const res = await api.addCompany({ name: newName.trim() });
+      setCompanies((prev) => [...prev, res.company]);
+      setNewName('');
+      setShowAdd(false);
+    } catch (error) {
+      setErr(error.message);
+    } finally {
+      setAddBusy(false);
+    }
+  }
+
+  async function toggleActive(comp) {
+    setToggling((s) => new Set(s).add(comp.id));
+    setErr('');
+    try {
+      const res = await api.updateCompany(comp.id, { active: !comp.active });
+      setCompanies((prev) => prev.map((c) => c.id === comp.id ? res.company : c));
+    } catch (error) {
+      setErr(error.message);
+    } finally {
+      setToggling((s) => { const n = new Set(s); n.delete(comp.id); return n; });
+    }
+  }
+
+  async function handleDelete(comp) {
+    if (!window.confirm(`Are you sure you want to delete company "${comp.name}"?`)) return;
+    setErr('');
+    try {
+      await api.deleteCompany(comp.id);
+      setCompanies((prev) => prev.filter((c) => c.id !== comp.id));
+    } catch (error) {
+      setErr(error.message);
+    }
+  }
+
+  const filtered = companies.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase().trim())
+  );
+
+  return (
+    <div className="ad-card-wrapper" style={{ marginTop: 28 }}>
+      <div className="ad-card-border-glow" aria-hidden="true" />
+      <div className="ad-card">
+        <div className="ad-card-shine-line" aria-hidden="true" />
+        <div className="ad-card-corner-blob" aria-hidden="true" />
+        <div className="ad-card-head" style={{ flexWrap: 'wrap', gap: 14 }}>
+          <div>
+            <h2 className="ad-card-title">Manage Companies / Sites</h2>
+            <p className="ad-card-sub">Client companies and job sites for daily worker deployment, site tracking, and billing.</p>
+          </div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <button className="ad-btn ad-btn-primary" onClick={() => setShowAdd((v) => !v)}>
+              <span className="ad-btn-primary-inner">{showAdd ? 'Cancel' : '+ Add Company'}</span>
+            </button>
+          </div>
+        </div>
+
+        {err && <div className="error-msg">{err}</div>}
+
+        {showAdd && (
+          <form className="company-add-form" onSubmit={handleAdd} style={{ marginBottom: 20, padding: '16px 20px', borderRadius: 12, background: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <h4 style={{ margin: '0 0 10px', fontSize: 14, color: '#e2e8f0' }}>Add New Company / Client Site</h4>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 300px' }}>
+                <input
+                  className="input"
+                  placeholder="e.g. Jelnar Electrical/Creek, Experts Group/Sensoria..."
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+              <button type="submit" className="ad-btn ad-btn-primary" disabled={addBusy}>
+                <span className="ad-btn-primary-inner">{addBusy ? 'Saving…' : 'Save Company'}</span>
+              </button>
+              <button type="button" className="btn ghost" onClick={() => setShowAdd(false)}>Cancel</button>
+            </div>
+          </form>
+        )}
+
+        <div className="company-search-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+          <div className="company-count-badge" style={{ fontSize: 13, color: '#94a3b8' }}>
+            Total Companies: <strong>{companies.length}</strong> (Active: {companies.filter(c => c.active).length})
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 13, color: '#94a3b8' }}>Search:</span>
+            <input
+              className="input"
+              style={{ width: 220, padding: '6px 12px', fontSize: 13 }}
+              placeholder="Filter by name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="admin-skeleton">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="skeleton-row">
+                <div className="skeleton-cell wide" />
+                <div className="skeleton-cell" />
+                <div className="skeleton-cell narrow" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="ad-table-container">
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th className="num th-col-id" style={{ width: 44, textAlign: 'center' }}>#</th>
+                  <th className="th-col-name">Company / Site Name</th>
+                  <th style={{ width: 120, textAlign: 'center' }}>Status</th>
+                  <th style={{ width: 180, textAlign: 'right' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((c, idx) => (
+                  <tr key={c.id || idx}>
+                    <td className="num">{idx + 1}</td>
+                    <td>
+                      <strong style={{ fontSize: '0.96em' }}>{c.name}</strong>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span className={`site-status-pill ${c.active ? 'active' : 'inactive'}`}>
+                        {c.active ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <button className="rowlink" onClick={() => setEditingCompany(c)} style={{ marginRight: 10 }}>Edit</button>
+                      <button
+                        className="rowlink"
+                        style={{ color: c.active ? '#f59e0b' : '#10b981', marginRight: 10 }}
+                        onClick={() => toggleActive(c)}
+                        disabled={toggling.has(c.id)}
+                      >
+                        {c.active ? 'Deactivate' : 'Activate'}
+                      </button>
+                      <button
+                        className="rowlink"
+                        style={{ color: '#ef4444' }}
+                        onClick={() => handleDelete(c)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="muted" style={{ textAlign: 'center', padding: 24 }}>
+                      {search ? `No companies match "${search}".` : 'No companies registered.'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {editingCompany && (
+        <EditCompanyModal
+          company={editingCompany}
+          onClose={() => setEditingCompany(null)}
+          onSaved={(updated) => {
+            setCompanies((prev) => prev.map((c) => c.id === updated.id ? updated : c));
+            setEditingCompany(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function EditCompanyModal({ company, onClose, onSaved }) {
+  const [name, setName] = useState(company.name || '');
+  const [active, setActive] = useState(company.active !== false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function submit(e) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setBusy(true);
+    setError('');
+    try {
+      const res = await api.updateCompany(company.id, { name: name.trim(), active });
+      onSaved(res.company);
+    } catch (err) {
+      setError(err.message || 'Failed to update company');
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
+        <h3>Edit Company / Site</h3>
+        <div className="msub">Update company name or active status.</div>
+        {error && <div className="error-msg">{error}</div>}
+        <form onSubmit={submit}>
+          <div className="field">
+            <label>Company / Site Name *</label>
+            <input className="input" value={name} onChange={(e) => setName(e.target.value)} autoFocus required />
+          </div>
+          <div className="field" style={{ marginTop: 14 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+              <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
+              <span>Active (available in supervisor site dropdown)</span>
+            </label>
+          </div>
+          <div className="modal-actions" style={{ marginTop: 22 }}>
+            <button type="button" className="btn ghost" onClick={onClose}>Cancel</button>
+            <button type="submit" className="ad-btn ad-btn-primary" disabled={busy}>
+              <span className="ad-btn-primary-inner">{busy ? 'Saving…' : 'Save changes'}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }

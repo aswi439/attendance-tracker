@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { generateQRCode } from "../../utils/qrcode.js";
 
 export interface LanyardLink {
   label: string;
@@ -26,6 +27,21 @@ export interface LanyardMember {
   tone?: 1 | 2 | 3 | 4 | 5;
   /** Extra lanyard length in pixels at a 124 px badge; it scales with the badge. */
   drop?: number;
+  /** Dedicated full employee ID card mode */
+  isEmployeeIdCard?: boolean;
+  workerId?: string;
+  designation?: string;
+  department?: string;
+  workerType?: string;
+  doj?: string | null;
+  experience?: string | null;
+  pastMonthWork?: string;
+  basicSalary?: number;
+  allowance?: number;
+  dutyRateHr?: number;
+  otRate?: number;
+  onPhotoUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemovePhoto?: (e: React.MouseEvent) => void;
 }
 
 export interface TeamLanyardRailLabels {
@@ -56,6 +72,9 @@ export interface TeamLanyardRailProps extends React.ComponentProps<"section"> {
   flipped?: number | null;
   onFlippedChange?: (index: number | null) => void;
   labels?: TeamLanyardRailLabels;
+  hideRail?: boolean;
+  hideCaption?: boolean;
+  cardWidth?: number;
 }
 
 const RATIO = 96 / 62;
@@ -148,20 +167,20 @@ function soft(distance: number, max: number) {
   return knee + (max - knee) * (1 - Math.exp(-(distance - knee) / (max - knee)));
 }
 
-function geometry(W: number, items: LanyardMember[]) {
+function geometry(W: number, items: LanyardMember[], hideRail = false) {
   const u = W / 124;
   const H = W * RATIO;
   const railR = Math.max(3.5, 4.5 * u);
-  const railY = 16 + railR;
+  const railY = hideRail ? 0 : 16 + railR;
   const ring = 9 * u;
-  const pivotY = railY + ring * 0.8;
+  const pivotY = hideRail ? 0 : railY + ring * 0.8;
   const strapW = Math.max(8, 11 * u);
   const crimp = 6 * u;
   const reel = 21 * u;
   const cordRest = 12 * u;
   const clipH = 13 * u;
   const clipW = 30 * u;
-  const base = 56 * u;
+  const base = (hideRail ? 32 : 56) * u;
   const straps = items.map((item, i) => base + Math.max(0, item.drop ?? DROPS[i % DROPS.length] ?? 0) * u);
   const reelTops = straps.map((len) => pivotY + len + crimp * 0.6);
   const clipTops = reelTops.map((top) => top + reel * 0.82 + cordRest);
@@ -332,13 +351,272 @@ const BadgeFaces = React.memo(function BadgeFaces({ item, tone }: { item: Lanyar
   const digits = String(seed % 1000000000).padStart(9, "0");
   const tags = (item.tags ?? []).slice(0, 3);
   const links = (item.links ?? []).slice(0, 3);
+
+  const verifyUrl = React.useMemo(() => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const workerKey = item.workerId || item.id;
+    return `${origin}/verify/worker/${workerKey}`;
+  }, [item.workerId, item.id]);
+
+  const realQr = React.useMemo(() => {
+    try {
+      return generateQRCode(verifyUrl);
+    } catch {
+      return { size: 21, path: qr };
+    }
+  }, [verifyUrl, qr]);
+
+  if (item.isEmployeeIdCard) {
+    return (
+      <>
+        {/* FRONT FACE OF OFFICIAL EMPLOYEE ID CARD */}
+        <span
+          data-face="front"
+          className="absolute inset-0 flex flex-col items-center overflow-hidden rounded-[0.85em] border border-sky-400/30 bg-slate-900/95 px-[0.7em] pb-[0.6em] text-slate-100 shadow-2xl backdrop-blur-md [backface-visibility:hidden]"
+          style={{ transform: "translateZ(1px)" }}
+        >
+          <Band tone={tone} tall />
+          <Hole />
+
+          {/* Company Header Band Text */}
+          <span className="absolute top-[0.42em] inset-x-0 text-center text-[0.45em] font-extrabold uppercase tracking-[0.18em] text-white/95 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            Al Taba Technical Services
+          </span>
+
+          {/* Photo Avatar with Add / Change Photo Trigger */}
+          <div className="relative mt-[1.75em] block size-[5.1em] shrink-0 rounded-full bg-slate-800 p-[0.16em] shadow-[0_0.25em_0.7em_rgba(0,0,0,0.5)] border-2 border-sky-400/50">
+            {item.image ? (
+              <img src={item.image} alt={item.name} className="size-full object-cover rounded-full" />
+            ) : (
+              <DefaultPersonRoundIcon />
+            )}
+
+            {/* Camera / Upload Button */}
+            {item.onPhotoUpload && (
+              <label
+                className="absolute -bottom-1 -right-1 z-30 flex size-[1.8em] cursor-pointer items-center justify-center rounded-full bg-sky-500 text-white shadow-md hover:bg-sky-400 hover:scale-110 active:scale-95 transition-all border border-slate-900"
+                title="Add / Change photo"
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    item.onPhotoUpload?.(e);
+                  }}
+                />
+              </label>
+            )}
+
+            {item.image && item.onRemovePhoto && (
+              <button
+                type="button"
+                className="absolute -top-1 -right-1 z-30 flex size-[1.5em] cursor-pointer items-center justify-center rounded-full bg-rose-600/90 text-white text-[11px] font-bold shadow hover:bg-rose-500 hover:scale-110 active:scale-95 transition-all border border-slate-900"
+                title="Remove photo"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  item.onRemovePhoto?.(e);
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          {/* Primary Identity: Name & Designation */}
+          <span className="mt-[0.3em] block w-full truncate text-center text-[1.02em] font-extrabold leading-tight tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+            {item.name}
+          </span>
+          <span className="mt-[0.08em] block w-full truncate text-center text-[0.74em] font-semibold text-sky-300">
+            {item.designation || item.role || '—'}
+          </span>
+
+          {/* Badge Chips: ID & Classification */}
+          <div className="mt-[0.3em] flex items-center justify-center gap-[0.35em]">
+            <span className="rounded bg-sky-500/20 px-[0.45em] py-[0.1em] font-mono text-[0.56em] font-bold text-sky-200 border border-sky-400/30">
+              {item.workerId || item.id}
+            </span>
+            <span className={`rounded px-[0.45em] py-[0.1em] text-[0.56em] font-bold border ${item.workerType === 'contract' ? 'bg-amber-500/20 text-amber-200 border-amber-400/30' : 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30'}`}>
+              {item.workerType === 'contract' ? 'Contractor' : 'Company Staff'}
+            </span>
+          </div>
+
+          {/* Credentials Info Grid: DOJ & Years of Experience */}
+          <div className="mt-[0.35em] w-full grid grid-cols-2 gap-[0.3em] rounded bg-white/[0.05] p-[0.3em] border border-white/10 text-center">
+            <div>
+              <span className="block text-[0.46em] uppercase tracking-wider text-slate-400 font-bold">DOJ</span>
+              <span className="block text-[0.62em] font-semibold text-slate-100 truncate">
+                {item.doj ? new Date(item.doj + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+              </span>
+            </div>
+            <div>
+              <span className="block text-[0.46em] uppercase tracking-wider text-slate-400 font-bold">Experience</span>
+              <span className="block text-[0.62em] font-bold text-sky-300 truncate">
+                {item.experience || '—'}
+              </span>
+            </div>
+          </div>
+
+          {/* Barcode & Security Digits */}
+          <div className="mt-auto block w-full border-t border-dashed border-sky-500/30 pt-[0.3em]">
+            <svg aria-hidden="true" viewBox={`0 0 ${bars.width} 20`} preserveAspectRatio="none" className="block h-[1.3em] w-full text-slate-200 opacity-90">
+              <path d={bars.d} fill="currentColor" />
+            </svg>
+            <div className="mt-[0.15em] flex items-center justify-between px-[0.2em] text-[0.46em] font-mono text-slate-400">
+              <span className="tracking-[0.2em]">{digits}</span>
+              <span className="text-sky-400/90 font-sans font-medium flex items-center gap-[0.2em]">Flip Card ↺</span>
+            </div>
+          </div>
+
+          <Finish />
+        </span>
+
+        {/* BACK FACE OF OFFICIAL EMPLOYEE ID CARD */}
+        <span
+          data-face="back"
+          className="absolute inset-0 flex flex-col overflow-hidden rounded-[0.85em] border border-sky-400/30 bg-slate-900/95 p-[0.75em] text-slate-100 shadow-2xl backdrop-blur-md [backface-visibility:hidden]"
+          style={{ transform: "rotateY(180deg) translateZ(1px)" }}
+        >
+          <Band tone={tone} />
+          <Hole />
+
+          {/* Header */}
+          <div className="mt-[1.65em] flex items-center justify-between border-b border-white/10 pb-[0.3em]">
+            <div className="truncate pr-1">
+              <span className="block text-[0.86em] font-bold leading-tight truncate text-white">{item.name}</span>
+              <span className="block text-[0.6em] text-sky-300 font-semibold truncate">{item.department || 'Operations'} · <span className="font-mono">{item.workerId || item.id}</span></span>
+            </div>
+            <span className="inline-flex items-center gap-[0.25em] text-[0.5em] font-bold text-emerald-400 bg-emerald-500/10 px-[0.4em] py-[0.1em] rounded border border-emerald-400/20 shrink-0">
+              <span className="size-1 rounded-full bg-emerald-400 animate-pulse" /> Active
+            </span>
+          </div>
+
+          {/* One line about past month work */}
+          <div className="mt-[0.4em]">
+            <span className="block text-[0.5em] font-bold uppercase tracking-wider text-sky-400 mb-[0.12em]">
+              Past Month Work
+            </span>
+            <div className="rounded bg-white/[0.04] p-[0.35em] border border-white/10 text-[0.6em] leading-[1.3] text-slate-200">
+              {item.pastMonthWork || 'Regular attendance shifts verified and in good standing.'}
+            </div>
+          </div>
+
+          {/* Compensation / Salary Information */}
+          <div className="mt-[0.4em]">
+            <span className="block text-[0.5em] font-bold uppercase tracking-wider text-emerald-400 mb-[0.12em]">
+              Salary & Compensation
+            </span>
+            <div className="rounded bg-white/[0.04] p-[0.35em] border border-white/10 text-[0.6em] space-y-[0.18em]">
+              {item.workerType === 'contract' ? (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Duty Rate / hr:</span>
+                    <span className="font-bold text-emerald-300">AED {Number(item.dutyRateHr || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Overtime Rate / hr:</span>
+                    <span className="font-bold text-emerald-300">AED {Number(item.otRate || 0).toFixed(2)}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Basic Salary:</span>
+                    <span className="font-bold text-emerald-300">AED {Number(item.basicSalary || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Monthly Allowance:</span>
+                    <span className="font-bold text-emerald-300">AED {Number(item.allowance || 0).toLocaleString()}</span>
+                  </div>
+                  {Number(item.otRate) > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">OT Rate / hr:</span>
+                      <span className="font-bold text-emerald-300">AED {Number(item.otRate).toFixed(2)}</span>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Real Scannable QR Code & Action Link */}
+          <div className="mt-auto flex items-end justify-between pt-[0.35em] border-t border-dashed border-white/10">
+            <div className="text-[0.48em] text-slate-400 leading-tight">
+              <span className="block font-mono text-[0.9em] text-sky-300 font-bold">{item.workerId || item.id}</span>
+              <span className="block mt-[0.08em] text-slate-400">Scan for Call / WhatsApp</span>
+              <a
+                href={verifyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-[0.2em] mt-[0.25em] text-sky-400 hover:text-sky-300 font-sans font-semibold underline"
+                title="Click to open interactive action card"
+              >
+                Action Profile ↗
+              </a>
+            </div>
+            <a
+              href={verifyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="flex flex-col items-center gap-[0.1em] group cursor-pointer"
+              title="Click or scan to view contact & credential card"
+            >
+              <div className="relative p-[0.18em] rounded bg-white text-slate-950 shadow-md group-hover:scale-105 transition-transform">
+                <svg
+                  aria-hidden="true"
+                  viewBox={`0 0 ${realQr.size} ${realQr.size}`}
+                  className="size-[3.3em] block text-slate-950"
+                  style={{ shapeRendering: 'crispEdges' }}
+                >
+                  <path d={realQr.path} fill="currentColor" />
+                </svg>
+              </div>
+              <span className="text-[0.42em] text-sky-300 font-mono tracking-widest uppercase font-bold">SCAN ME</span>
+            </a>
+          </div>
+
+          <Finish />
+        </span>
+
+        {[0, 1].map((side) => (
+          <span
+            key={side}
+            aria-hidden="true"
+            className="absolute inset-y-[0.85em] block w-[2px]"
+            style={{
+              [side ? "right" : "left"]: 0,
+              transform: `translateX(${side ? 1 : -1}px) rotateY(90deg)`,
+              background: "color-mix(in oklab, var(--color-foreground) 30%, var(--color-card))",
+            }}
+          />
+        ))}
+      </>
+    );
+  }
+
   return (
     <>
       <span data-face="front" className="absolute inset-0 flex flex-col items-center overflow-hidden rounded-[0.85em] border border-border bg-card px-[0.8em] pb-[0.7em] text-card-foreground [backface-visibility:hidden]" style={{ transform: "translateZ(1px)" }}>
         <Band tone={tone} tall />
         <Hole />
         <span className="relative mt-[1.9em] block size-[5.3em] shrink-0 rounded-full bg-card p-[0.2em]" style={{ boxShadow: "0 0.15em 0.5em color-mix(in oklab, var(--color-foreground) 22%, transparent)" }}>
-          <DefaultPersonRoundIcon />
+          {item.image ? (
+            <img src={item.image} alt={item.name} className="size-full object-cover rounded-full" />
+          ) : (
+            <DefaultPersonRoundIcon />
+          )}
         </span>
         <span className="mt-[0.55em] block w-full truncate text-center text-[1.08em] font-semibold leading-tight tracking-tight">{item.name}</span>
         <span className="mt-[0.15em] block w-full truncate text-center text-[0.8em] leading-snug text-muted-foreground">{item.role}</span>
@@ -398,6 +676,9 @@ export function TeamLanyardRail({
   flipped: flippedProp,
   onFlippedChange,
   labels = DEFAULT_LABELS,
+  hideRail = false,
+  hideCaption = false,
+  cardWidth,
   className,
   ...rest
 }: TeamLanyardRailProps) {
@@ -414,7 +695,7 @@ export function TeamLanyardRail({
   const shadows = React.useRef([] as (HTMLSpanElement | null)[]);
   const linkLayers = React.useRef([] as (HTMLDivElement | null)[]);
   const sim = React.useRef(emptySim());
-  const [size, setSize] = React.useState({ width: 0, W: MAX_W, carousel: false });
+  const [size, setSize] = React.useState({ width: 0, W: cardWidth || MAX_W, carousel: false });
   const [innerActive, setInnerActive] = React.useState(0 as number | null);
   const [innerFlipped, setInnerFlipped] = React.useState(null as number | null);
   const [focusIndex, setFocusIndex] = React.useState(0);
@@ -425,7 +706,7 @@ export function TeamLanyardRail({
   const valid = (value: number | null | undefined) => (value === null || value === undefined || value < 0 || value >= count ? null : value);
   const active = valid(activeProp !== undefined ? activeProp : innerActive);
   const flipped = valid(flippedProp !== undefined ? flippedProp : innerFlipped);
-  const geo = React.useMemo(() => geometry(size.W, items), [size.W, items]);
+  const geo = React.useMemo(() => geometry(size.W, items, hideRail), [size.W, items, hideRail]);
   const live = React.useRef({ active, flipped, size, geo, reduced, count, carouselIndex: 0, cyclic: false, activeControlled: false, flippedControlled: false });
   live.current = { ...live.current, active, flipped, size, geo, reduced, count, activeControlled: activeProp !== undefined, flippedControlled: flippedProp !== undefined };
   const callbacks = React.useRef({ onActiveChange, onFlippedChange });
@@ -466,16 +747,17 @@ export function TeamLanyardRail({
     if (!stage) return;
     const measure = (width: number) => {
       const n = Math.max(1, live.current.count);
-      const railW = Math.min(MAX_W, (width - 40) / (n * RAIL_PITCH_MIN + 0.4));
-      const carousel = railW < MIN_RAIL_W;
-      const W = Math.round((carousel ? clamp(width * 0.35, 145, 168) : railW) * 4) / 4;
+      const targetMax = cardWidth || MAX_W;
+      const railW = Math.min(targetMax, (width - 40) / (n * RAIL_PITCH_MIN + 0.4));
+      const carousel = cardWidth ? false : railW < MIN_RAIL_W;
+      const W = Math.round((cardWidth ? Math.min(cardWidth, width - 20) : carousel ? clamp(width * 0.35, 145, 168) : railW) * 4) / 4;
       setSize((old) => (Math.abs(old.width - width) < 0.5 && old.carousel === carousel && old.W === W ? old : { width, W, carousel }));
     };
     measure(stage.clientWidth);
     const observer = new ResizeObserver((entries) => { const box = entries[0]; if (box) measure(box.contentRect.width); });
     observer.observe(stage);
     return () => observer.disconnect();
-  }, [count]);
+  }, [count, cardWidth, hideRail]);
 
   const paint = React.useCallback((i: number) => {
     const s = sim.current;
@@ -992,17 +1274,19 @@ export function TeamLanyardRail({
         }}
         onKeyDown={onKeyDown}
       >
-        <div aria-hidden="true" data-rail className="pointer-events-none absolute inset-x-0 z-0" style={{ top: g.railY - g.railR, height: g.railR * 2 }}>
-          <div className="absolute inset-x-0 h-3 rounded-full bg-foreground/10 blur-[5px]" style={{ top: g.railR * 2 + 2 }} />
-          <div className="absolute inset-0 rounded-full" style={{ background: "linear-gradient(to bottom, color-mix(in oklab, var(--color-muted-foreground) 35%, white) 0%, white 20%, color-mix(in oklab, var(--color-muted-foreground) 70%, white) 40%, var(--color-muted-foreground) 64%, color-mix(in oklab, var(--color-muted-foreground) 55%, black) 100%)", boxShadow: "0 1px 0 color-mix(in oklab, var(--color-foreground) 18%, transparent)" }} />
-          <div className="absolute inset-0 rounded-full opacity-40 mix-blend-overlay" style={{ background: "repeating-linear-gradient(90deg, transparent 0 2px, color-mix(in oklab, white 40%, transparent) 2px 3px, transparent 3px 7px)" }} />
-          {[0, 1].map((side) => (
-            <div key={side} className="absolute top-1/2 h-7 w-4 -translate-y-1/2 rounded-[3px]" style={{ [side ? "right" : "left"]: 6, background: "linear-gradient(to right, color-mix(in oklab, var(--color-muted-foreground) 60%, white), var(--color-muted-foreground) 55%, color-mix(in oklab, var(--color-muted-foreground) 60%, black))", boxShadow: "0 3px 6px color-mix(in oklab, var(--color-foreground) 18%, transparent)" }}>
-              <span className="absolute left-1/2 top-1 size-1 -translate-x-1/2 rounded-full bg-foreground/35" />
-              <span className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-foreground/35" />
-            </div>
-          ))}
-        </div>
+        {!hideRail && (
+          <div aria-hidden="true" data-rail className="pointer-events-none absolute inset-x-0 z-0" style={{ top: g.railY - g.railR, height: g.railR * 2 }}>
+            <div className="absolute inset-x-0 h-3 rounded-full bg-foreground/10 blur-[5px]" style={{ top: g.railR * 2 + 2 }} />
+            <div className="absolute inset-0 rounded-full" style={{ background: "linear-gradient(to bottom, color-mix(in oklab, var(--color-muted-foreground) 35%, white) 0%, white 20%, color-mix(in oklab, var(--color-muted-foreground) 70%, white) 40%, var(--color-muted-foreground) 64%, color-mix(in oklab, var(--color-muted-foreground) 55%, black) 100%)", boxShadow: "0 1px 0 color-mix(in oklab, var(--color-foreground) 18%, transparent)" }} />
+            <div className="absolute inset-0 rounded-full opacity-40 mix-blend-overlay" style={{ background: "repeating-linear-gradient(90deg, transparent 0 2px, color-mix(in oklab, white 40%, transparent) 2px 3px, transparent 3px 7px)" }} />
+            {[0, 1].map((side) => (
+              <div key={side} className="absolute top-1/2 h-7 w-4 -translate-y-1/2 rounded-[3px]" style={{ [side ? "right" : "left"]: 6, background: "linear-gradient(to right, color-mix(in oklab, var(--color-muted-foreground) 60%, white), var(--color-muted-foreground) 55%, color-mix(in oklab, var(--color-muted-foreground) 60%, black))", boxShadow: "0 3px 6px color-mix(in oklab, var(--color-foreground) 18%, transparent)" }}>
+                <span className="absolute left-1/2 top-1 size-1 -translate-x-1/2 rounded-full bg-foreground/35" />
+                <span className="absolute bottom-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-foreground/35" />
+              </div>
+            ))}
+          </div>
+        )}
 
         {items.map((item, i) => {
           const tone = TONES[((item.tone ?? (i % 5) + 1) - 1) % TONES.length] ?? TONES[0];
@@ -1021,17 +1305,19 @@ export function TeamLanyardRail({
               className={`pointer-events-none absolute left-0 top-0 ${tone}`}
               style={{ width: W, height: g.height, zIndex: isFlipped ? 40 : isActive ? 30 : 10 + i, transform: `translate3d(${((sim.current.x[i] ?? 0) - W / 2).toFixed(2)}px,0,0)` }}
             >
-              <span aria-hidden="true" className="absolute block rounded-full" style={{ left: W / 2 - 4.5 * g.u, top: g.railY - g.ring, width: 9 * g.u, height: g.ring * 2, border: `${Math.max(1.6, 2.2 * g.u).toFixed(2)}px solid color-mix(in oklab, var(--color-muted-foreground) 45%, white)`, boxShadow: "inset 1px 0 0 color-mix(in oklab, black 25%, transparent), 1px 1px 2px color-mix(in oklab, black 20%, transparent)" }} />
-              <span ref={(node) => { swings.current[i] = node; }} data-swing className="absolute inset-0 block" style={{ transformOrigin: `${W / 2}px ${g.pivotY}px` }}>
+              {!hideRail && (
+                <span aria-hidden="true" className="absolute block rounded-full" style={{ left: W / 2 - 4.5 * g.u, top: g.railY - g.ring, width: 9 * g.u, height: g.ring * 2, border: `${Math.max(1.6, 2.2 * g.u).toFixed(2)}px solid color-mix(in oklab, var(--color-muted-foreground) 45%, white)`, boxShadow: "inset 1px 0 0 color-mix(in oklab, black 25%, transparent), 1px 1px 2px color-mix(in oklab, black 20%, transparent)" }} />
+              )}
+              <span ref={(node) => { swings.current[i] = node; }} data-swing className="absolute inset-0 block" style={{ transformOrigin: `${W / 2}px ${hideRail ? 0 : g.pivotY}px` }}>
                 <span ref={(node) => { straps.current[i] = node; }} data-strap aria-hidden="true" className="absolute inset-0 block" style={{ ["--stretch" as string]: "0px" }}>
-                  <span className="absolute block bg-black/15 blur-[2px] dark:bg-black/45" style={{ left: W / 2 - g.strapW / 2 + 3 * g.u, top: g.pivotY + 3, width: g.strapW, height: strap }} />
+                  <span className="absolute block bg-black/15 blur-[2px] dark:bg-black/45" style={{ left: W / 2 - g.strapW / 2 + 3 * g.u, top: hideRail ? 0 : g.pivotY + 3, width: g.strapW, height: strap }} />
                   <span
                     className="absolute block"
                     style={{
                       left: W / 2 - g.strapW / 2,
-                      top: g.pivotY - 2,
+                      top: hideRail ? 0 : g.pivotY - 2,
                       width: g.strapW,
-                      height: strap + 2,
+                      height: hideRail ? strap : strap + 2,
                       background: [
                         "repeating-linear-gradient(135deg, color-mix(in oklab, white 16%, transparent) 0 1px, transparent 1px 3px)",
                         "repeating-linear-gradient(45deg, color-mix(in oklab, black 13%, transparent) 0 1px, transparent 1px 3px)",
@@ -1043,10 +1329,12 @@ export function TeamLanyardRail({
                     <span className="absolute inset-x-0 top-0 block bg-black/25" style={{ height: 7 * g.u }} />
                     <span className="absolute inset-x-[2px] block border-t border-dashed border-white/45" style={{ top: 9 * g.u }} />
                   </span>
-                  <svg aria-hidden="true" className="absolute overflow-visible" style={{ left: W / 2 - g.strapW * 0.75, top: g.pivotY - 4 * g.u, width: g.strapW * 1.5, height: 8 * g.u }} viewBox="0 0 30 16" preserveAspectRatio="none">
-                    <rect x="2" y="3" width="26" height="10" rx="5" fill="none" stroke="color-mix(in oklab, var(--color-muted-foreground) 40%, white)" strokeWidth="3" />
-                    <path d="M7 4.5 H23" stroke="white" strokeOpacity="0.6" strokeWidth="1" />
-                  </svg>
+                  {!hideRail && (
+                    <svg aria-hidden="true" className="absolute overflow-visible" style={{ left: W / 2 - g.strapW * 0.75, top: g.pivotY - 4 * g.u, width: g.strapW * 1.5, height: 8 * g.u }} viewBox="0 0 30 16" preserveAspectRatio="none">
+                      <rect x="2" y="3" width="26" height="10" rx="5" fill="none" stroke="color-mix(in oklab, var(--color-muted-foreground) 40%, white)" strokeWidth="3" />
+                      <path d="M7 4.5 H23" stroke="white" strokeOpacity="0.6" strokeWidth="1" />
+                    </svg>
+                  )}
                   <span className="absolute block rounded-[2px]" style={{ left: W / 2 - g.strapW / 2 - 1.5, top: g.pivotY + strap - g.crimp * 0.4, width: g.strapW + 3, height: g.crimp, background: METAL, boxShadow: "0 1px 1.5px color-mix(in oklab, black 30%, transparent)" }} />
                   <span
                     className="absolute block rounded-full"
@@ -1113,7 +1401,7 @@ export function TeamLanyardRail({
 
       </div>
 
-      {person && (
+      {!hideCaption && person && (
         <div className="relative z-10 -mt-1 pb-2 flex justify-center text-center select-none pointer-events-none">
           <p className="text-xs sm:text-[13px] font-bold uppercase tracking-wider text-slate-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
             <span>{person.name}</span>

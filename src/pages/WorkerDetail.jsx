@@ -1,15 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { api } from '../api.js';
+import { api, formatExperience } from '../api.js';
 import { useTheme } from '../App.jsx';
 import Ring from '../Ring.jsx';
 import { GlassFold } from '@/components/ui/glass-fold';
+import TeamLanyardRail from '@/components/ui/team-lanyard-rail';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 const LEAVE_META = {
   ml: ['Medical Leave', '#E45863'],
+  annual: ['Annual Leave', '#0284C7'],
   emergency: ['Emergency', '#D97706'],
   work_related: ['Work-related', '#8B7CF6'],
   casual: ['Casual', '#E8C56B'],
@@ -19,7 +21,7 @@ const LEAVE_META = {
 const LEAVE_KEYS = Object.keys(LEAVE_META);
 const LEAVE_COLORS = Object.fromEntries(LEAVE_KEYS.map((k) => [k, LEAVE_META[k][1]]));
 const LEAVE_LABELS = Object.fromEntries(LEAVE_KEYS.map((k) => [k, LEAVE_META[k][0]]));
-const LEAVE_SHORT = { ml: 'ML', emergency: 'Emergency', work_related: 'Work', casual: 'Casual', unpaid: 'Unpaid', unspecified: 'Unspec.' };
+const LEAVE_SHORT = { ml: 'ML', annual: 'Annual', emergency: 'Emer.', work_related: 'Work', casual: 'Casual', unpaid: 'Unpaid', unspecified: 'Unspec.' };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -47,19 +49,24 @@ function generateFilteredPDF(data, year, id, periodInfo) {
   doc.text(`${worker.name || id} (${worker.id || id}) · ${worker.department || 'No department'} · ${label}`, 14, 23);
 
   // Table 1: Periodic Summary Breakdown
-  const sumHeaders = ['Period', 'Present', 'Late', 'Absent', 'Avg %', 'Duty Hrs', 'OT Hrs', 'Duty Pay', 'OT Pay', 'Total Wages', 'ML', 'Emg', 'Work', 'Cas', 'Unp'];
+  const sumHeaders = ['Period', 'Present', 'Late', 'Absent', 'No Work', 'Avg %', 'Duty Hrs', 'OT Hrs', 'Duty Pay/Hr', 'OT Pay/Hr', 'Duty Pay', 'OT Pay', 'Addl. Allow', 'Total Wages', 'ML', 'Annual', 'Emg', 'Work', 'Cas', 'Unp'];
   const sumData = (summaryRows || []).map((r) => [
     r.label,
     r.presentDays ?? 0,
     r.lateDays ?? 0,
     r.absentDays ?? 0,
+    r.noWorkDays ?? 0,
     r.pct != null ? `${r.pct}%` : '–',
     r.totalDutyHours ?? 0,
     r.totalOvertimeHours ?? 0,
+    r.totalDutyHours > 0 ? `AED ${((r.totalDailyWage || 0) / r.totalDutyHours).toFixed(2)}` : '–',
+    r.totalOvertimeHours > 0 ? `AED ${((r.totalOvertimeWage || 0) / r.totalOvertimeHours).toFixed(2)}` : '–',
     r.totalDailyWage ? `AED ${Number(r.totalDailyWage).toFixed(2)}` : '–',
     r.totalOvertimeWage ? `AED ${Number(r.totalOvertimeWage).toFixed(2)}` : '–',
+    worker.additional_allowance ? `AED ${Number(worker.additional_allowance).toFixed(2)}` : '–',
     r.totalWage ? `AED ${Number(r.totalWage).toFixed(2)}` : (r.totalDailyWage || r.totalOvertimeWage ? `AED ${(Number(r.totalDailyWage || 0) + Number(r.totalOvertimeWage || 0)).toFixed(2)}` : '–'),
     r.ml ?? 0,
+    r.annual ?? 0,
     r.emergency ?? 0,
     r.workRelated ?? 0,
     r.casual ?? 0,
@@ -72,13 +79,18 @@ function generateFilteredPDF(data, year, id, periodInfo) {
       totals.p ?? 0,
       totals.late ?? 0,
       totals.a ?? 0,
+      totals.noWork ?? 0,
       totals.pct != null ? `${totals.pct}%` : '–',
       totals.dutyHrs ?? 0,
       totals.otHrs ?? 0,
+      totals.dutyHrs > 0 ? `AED ${((totals.dutyWage || 0) / totals.dutyHrs).toFixed(2)}` : '–',
+      totals.otHrs > 0 ? `AED ${((totals.otWage || 0) / totals.otHrs).toFixed(2)}` : '–',
       totals.dutyWage ? `AED ${Number(totals.dutyWage).toFixed(2)}` : '–',
       totals.otWage ? `AED ${Number(totals.otWage).toFixed(2)}` : '–',
+      worker.additional_allowance ? `AED ${(Number(worker.additional_allowance) * (summaryRows || []).length).toFixed(2)}` : '–',
       totals.totalWage ? `AED ${Number(totals.totalWage).toFixed(2)}` : '–',
       totals.ml ?? 0,
+      totals.ann ?? 0,
       totals.emg ?? 0,
       totals.wr ?? 0,
       totals.ca ?? 0,
@@ -107,7 +119,8 @@ function generateFilteredPDF(data, year, id, periodInfo) {
   const dailyData = (dailyRows || []).map((r) => [
     r.date,
     dow[new Date(r.date + 'T00:00:00Z').getUTCDay()],
-    r.status === 'present' ? (r.is_late ? 'Late' : 'Present') : 'Absent',
+    r.site || '–',
+    r.status === 'present' ? (r.ot_type === 'sunday' ? 'Sunday OT' : r.ot_type === 'holiday' ? 'Holiday OT' : (r.is_late ? 'Late' : 'Present')) : (r.status === 'no_work' ? 'No Work' : 'Absent'),
     r.duty_hours ? `${r.duty_hours}h` : '–',
     r.overtime_hours ? `${r.overtime_hours}h` : '–',
     r.daily_wage ? `AED ${Number(r.daily_wage).toFixed(2)}` : '–',
@@ -118,8 +131,8 @@ function generateFilteredPDF(data, year, id, periodInfo) {
 
   autoTable(doc, {
     startY: finalY + 4,
-    head: [['Date', 'Day', 'Status', 'Duty', 'OT', 'Duty Pay', 'OT Pay', 'Leave Type', 'Notes']],
-    body: dailyData.length > 0 ? dailyData : [['–', '–', 'No daily records in this period', '–', '–', '–', '–', '–', '–']],
+    head: [['Date', 'Day', 'Site', 'Status', 'Duty', 'OT', 'Duty Pay', 'OT Pay', 'Leave Type', 'Notes']],
+    body: dailyData.length > 0 ? dailyData : [['–', '–', '–', 'No daily records in this period', '–', '–', '–', '–', '–', '–']],
     theme: 'grid',
     headStyles: { fillColor: [10, 25, 55], textColor: [255, 255, 255], fontSize: 7.5, fontStyle: 'bold' },
     styles: { fontSize: 7, cellPadding: 2.2 },
@@ -138,13 +151,18 @@ function generateFilteredXLSX(data, year, id, periodInfo) {
     'Present Days': r.presentDays ?? 0,
     'Late Days': r.lateDays ?? 0,
     'Absent Days': r.absentDays ?? 0,
+    'No Work Days': r.noWorkDays ?? 0,
     'Attendance %': r.pct != null ? `${r.pct}%` : '–',
     'Duty Hours': r.totalDutyHours ?? 0,
     'OT Hours': r.totalOvertimeHours ?? 0,
+    'Duty Pay/Hr (AED)': r.totalDutyHours > 0 ? Math.round(((r.totalDailyWage || 0) / r.totalDutyHours) * 100) / 100 : 0,
+    'OT Pay/Hr (AED)': r.totalOvertimeHours > 0 ? Math.round(((r.totalOvertimeWage || 0) / r.totalOvertimeHours) * 100) / 100 : 0,
     'Duty Pay (AED)': r.totalDailyWage ?? 0,
     'OT Pay (AED)': r.totalOvertimeWage ?? 0,
+    'Addl. Allowance (AED)': data?.worker?.additional_allowance ?? 0,
     'Total Wages (AED)': r.totalWage ?? (Number(r.totalDailyWage || 0) + Number(r.totalOvertimeWage || 0)),
     'Medical Leave': r.ml ?? 0,
+    'Annual Leave': r.annual ?? 0,
     Emergency: r.emergency ?? 0,
     'Work-related': r.workRelated ?? 0,
     Casual: r.casual ?? 0,
@@ -158,13 +176,18 @@ function generateFilteredXLSX(data, year, id, periodInfo) {
       'Present Days': totals.p ?? 0,
       'Late Days': totals.late ?? 0,
       'Absent Days': totals.a ?? 0,
+      'No Work Days': totals.noWork ?? 0,
       'Attendance %': totals.pct != null ? `${totals.pct}%` : '–',
       'Duty Hours': totals.dutyHrs ?? 0,
       'OT Hours': totals.otHrs ?? 0,
+      'Duty Pay/Hr (AED)': totals.dutyHrs > 0 ? Math.round(((totals.dutyWage || 0) / totals.dutyHrs) * 100) / 100 : 0,
+      'OT Pay/Hr (AED)': totals.otHrs > 0 ? Math.round(((totals.otWage || 0) / totals.otHrs) * 100) / 100 : 0,
       'Duty Pay (AED)': totals.dutyWage ?? 0,
       'OT Pay (AED)': totals.otWage ?? 0,
+      'Addl. Allowance (AED)': (data?.worker?.additional_allowance ?? 0) * (summaryRows || []).length,
       'Total Wages (AED)': totals.totalWage ?? 0,
       'Medical Leave': totals.ml ?? 0,
+      'Annual Leave': totals.ann ?? 0,
       Emergency: totals.emg ?? 0,
       'Work-related': totals.wr ?? 0,
       Casual: totals.ca ?? 0,
@@ -180,7 +203,8 @@ function generateFilteredXLSX(data, year, id, periodInfo) {
   const dailyData = (dailyRows || []).map((r) => ({
     Date: r.date,
     Day: dow[new Date(r.date + 'T00:00:00Z').getUTCDay()],
-    Status: r.status === 'present' ? (r.is_late ? 'Late Present' : 'Present') : 'Absent',
+    Site: r.site || '–',
+    Status: r.status === 'present' ? (r.ot_type === 'sunday' ? 'Sunday OT' : r.ot_type === 'holiday' ? 'Holiday OT' : (r.is_late ? 'Late Present' : 'Present')) : (r.status === 'no_work' ? 'No Work' : 'Absent'),
     'Duty Hours': r.duty_hours || 0,
     'OT Hours': r.overtime_hours || 0,
     'Duty Pay (AED)': r.daily_wage || 0,
@@ -205,20 +229,25 @@ function generateFilteredCSV(data, year, id, periodInfo) {
     `"Department: ${worker.department || 'No department'} | Year: ${year} | Generated: ${new Date().toISOString().slice(0, 10)}"`,
     '',
     '--- PERIOD SUMMARY BREAKDOWN ---',
-    'Period,Present Days,Late Days,Absent Days,Attendance %,Duty Hours,OT Hours,Duty Pay (AED),OT Pay (AED),Total Wages (AED),Medical Leave,Emergency,Work-related,Casual,Unpaid,Unspecified',
+    'Period,Present Days,Late Days,Absent Days,No Work Days,Attendance %,Duty Hours,OT Hours,Duty Pay/Hr (AED),OT Pay/Hr (AED),Duty Pay (AED),OT Pay (AED),Addl. Allowance (AED),Total Wages (AED),Medical Leave,Annual Leave,Emergency,Work-related,Casual,Unpaid,Unspecified',
     ...(summaryRows || []).map((r) =>
       [
         r.label,
         r.presentDays ?? 0,
         r.lateDays ?? 0,
         r.absentDays ?? 0,
+        r.noWorkDays ?? 0,
         r.pct != null ? `${r.pct}%` : '–',
         r.totalDutyHours ?? 0,
         r.totalOvertimeHours ?? 0,
+        r.totalDutyHours > 0 ? ((r.totalDailyWage || 0) / r.totalDutyHours).toFixed(2) : 0,
+        r.totalOvertimeHours > 0 ? ((r.totalOvertimeWage || 0) / r.totalOvertimeHours).toFixed(2) : 0,
         r.totalDailyWage ?? 0,
         r.totalOvertimeWage ?? 0,
+        worker.additional_allowance ?? 0,
         r.totalWage ?? (Number(r.totalDailyWage || 0) + Number(r.totalOvertimeWage || 0)),
         r.ml ?? 0,
+        r.annual ?? 0,
         r.emergency ?? 0,
         r.workRelated ?? 0,
         r.casual ?? 0,
@@ -234,13 +263,18 @@ function generateFilteredCSV(data, year, id, periodInfo) {
       totals.p ?? 0,
       totals.late ?? 0,
       totals.a ?? 0,
+      totals.noWork ?? 0,
       totals.pct != null ? `${totals.pct}%` : '–',
       totals.dutyHrs ?? 0,
       totals.otHrs ?? 0,
+      totals.dutyHrs > 0 ? ((totals.dutyWage || 0) / totals.dutyHrs).toFixed(2) : 0,
+      totals.otHrs > 0 ? ((totals.otWage || 0) / totals.otHrs).toFixed(2) : 0,
       totals.dutyWage ?? 0,
       totals.otWage ?? 0,
+      (worker.additional_allowance ?? 0) * (summaryRows || []).length,
       totals.totalWage ?? 0,
       totals.ml ?? 0,
+      totals.ann ?? 0,
       totals.emg ?? 0,
       totals.wr ?? 0,
       totals.ca ?? 0,
@@ -251,14 +285,15 @@ function generateFilteredCSV(data, year, id, periodInfo) {
 
   lines.push('');
   lines.push(`--- DAILY ATTENDANCE RECORDS (${label}) ---`);
-  lines.push('Date,Day,Status,Duty Hours,OT Hours,Duty Pay (AED),OT Pay (AED),Leave Type,Notes,Marked By');
+  lines.push('Date,Day,Site,Status,Duty Hours,OT Hours,Duty Pay (AED),OT Pay (AED),Leave Type,Notes,Marked By');
 
   const dow = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   for (const r of dailyRows || []) {
     lines.push([
       r.date,
       dow[new Date(r.date + 'T00:00:00Z').getUTCDay()],
-      r.status === 'present' ? (r.is_late ? 'Late Present' : 'Present') : 'Absent',
+      r.site || '–',
+      r.status === 'present' ? (r.ot_type === 'sunday' ? 'Sunday OT' : r.ot_type === 'holiday' ? 'Holiday OT' : (r.is_late ? 'Late Present' : 'Present')) : (r.status === 'no_work' ? 'No Work' : 'Absent'),
       r.duty_hours || 0,
       r.overtime_hours || 0,
       r.daily_wage || 0,
@@ -443,7 +478,7 @@ const HALF_LABELS = ['H1 (Jan–Jun)', 'H2 (Jul–Dec)'];
 
 function aggregateMonths(monthly, groups) {
   return groups.map(({ label, months: mlist }) => {
-    const agg = { label, presentDays: 0, lateDays: 0, absentDays: 0, ml: 0, emergency: 0, workRelated: 0, casual: 0, unpaid: 0, unspecified: 0, totalDutyHours: 0, totalOvertimeHours: 0, totalDailyWage: 0, totalOvertimeWage: 0, totalWage: 0, hasData: false };
+    const agg = { label, presentDays: 0, lateDays: 0, absentDays: 0, noWorkDays: 0, ml: 0, annual: 0, emergency: 0, workRelated: 0, casual: 0, unpaid: 0, unspecified: 0, totalDutyHours: 0, totalOvertimeHours: 0, sundayOtHours: 0, holidayOtHours: 0, totalDailyWage: 0, totalOvertimeWage: 0, totalWage: 0, hasData: false };
     for (const m of mlist) {
       const mm = monthly.find((r) => r.month === String(m).padStart(2, '0'));
       if (!mm) continue;
@@ -451,7 +486,9 @@ function aggregateMonths(monthly, groups) {
       agg.presentDays += mm.presentDays;
       agg.lateDays += mm.lateDays || 0;
       agg.absentDays += mm.absentDays;
+      agg.noWorkDays += mm.noWorkDays || 0;
       agg.ml += mm.ml;
+      agg.annual += (mm.annual || 0);
       agg.emergency += mm.emergency;
       agg.workRelated += mm.workRelated;
       agg.casual += mm.casual;
@@ -459,12 +496,16 @@ function aggregateMonths(monthly, groups) {
       agg.unspecified += mm.unspecified;
       agg.totalDutyHours += mm.totalDutyHours || 0;
       agg.totalOvertimeHours += mm.totalOvertimeHours || 0;
+      agg.sundayOtHours += mm.sundayOtHours || 0;
+      agg.holidayOtHours += mm.holidayOtHours || 0;
       agg.totalDailyWage += mm.totalDailyWage || 0;
       agg.totalOvertimeWage += mm.totalOvertimeWage || 0;
       agg.totalWage += mm.totalWage || 0;
     }
     agg.totalDutyHours = Math.round(agg.totalDutyHours * 100) / 100;
     agg.totalOvertimeHours = Math.round(agg.totalOvertimeHours * 100) / 100;
+    agg.sundayOtHours = Math.round((agg.sundayOtHours || 0) * 100) / 100;
+    agg.holidayOtHours = Math.round((agg.holidayOtHours || 0) * 100) / 100;
     agg.totalDailyWage = Math.round(agg.totalDailyWage * 100) / 100;
     agg.totalOvertimeWage = Math.round(agg.totalOvertimeWage * 100) / 100;
     agg.totalWage = Math.round(agg.totalWage * 100) / 100;
@@ -473,6 +514,25 @@ function aggregateMonths(monthly, groups) {
 }
 
 function fmtAED(v) { return v ? `AED ${v.toLocaleString()}` : '–'; }
+
+function renderOtCell(totalOt, sunOt, holOt) {
+  if (!totalOt) return '–';
+  const hasSpecial = (sunOt > 0 || holOt > 0);
+  if (!hasSpecial) return totalOt;
+  const regOt = Math.max(0, totalOt - (sunOt || 0) - (holOt || 0));
+  const parts = [];
+  if (regOt > 0) parts.push(`${regOt.toFixed(1)}h regular OT`);
+  if (sunOt > 0) parts.push(`${sunOt.toFixed(1)}h Sunday OT`);
+  if (holOt > 0) parts.push(`${holOt.toFixed(1)}h Holiday OT`);
+  const tip = parts.join(' + ') || `${totalOt}h OT`;
+  return (
+    <Tip text={tip}>
+      <span style={{ borderBottom: '1px dotted rgba(56, 189, 248, 0.75)', cursor: 'help' }}>
+        {typeof totalOt === 'number' ? (Number.isInteger(totalOt) ? totalOt : totalOt.toFixed(1)) : totalOt}
+      </span>
+    </Tip>
+  );
+}
 
 export default function WorkerDetail({ me, onSignOut }) {
   const { id } = useParams();
@@ -550,13 +610,147 @@ export default function WorkerDetail({ me, onSignOut }) {
 
   const tot = monthly.reduce(
     (a, r) => ({
-      p: a.p + r.presentDays, late: a.late + (r.lateDays || 0), a: a.a + r.absentDays, ml: a.ml + r.ml,
+      p: a.p + r.presentDays, late: a.late + (r.lateDays || 0), a: a.a + r.absentDays,
+      noWork: a.noWork + (r.noWorkDays || 0),
+      ml: a.ml + r.ml,
+      ann: a.ann + (r.annual || 0),
       emg: a.emg + r.emergency, wr: a.wr + r.workRelated, ca: a.ca + r.casual,
       un: a.un + r.unpaid, us: a.us + r.unspecified,
     }),
-    { p: 0, late: 0, a: 0, ml: 0, emg: 0, wr: 0, ca: 0, un: 0, us: 0 },
+    { p: 0, late: 0, a: 0, noWork: 0, ml: 0, ann: 0, emg: 0, wr: 0, ca: 0, un: 0, us: 0 },
   );
   const yearPct = tot.p + tot.a > 0 ? Math.round((tot.p / (tot.p + tot.a)) * 1000) / 10 : null;
+
+  const payroll = data?.payroll || (() => {
+    if (!data?.records || !data?.worker) return null;
+    const paidLeaves = ['ml', 'annual', 'casual', 'emergency', 'work_related'];
+    let paidDays = 0;
+    let unpaidDays = 0;
+    let totalDutyHours = 0;
+    let totalOvertimeHours = 0;
+    let totalDailyWage = 0;
+    let totalOvertimeWage = 0;
+    for (const r of data.records) {
+      if (r.status === 'present') {
+        paidDays++;
+        totalDutyHours += Number(r.duty_hours) || 0;
+        totalOvertimeHours += Number(r.overtime_hours) || 0;
+        totalDailyWage += Number(r.daily_wage) || 0;
+        totalOvertimeWage += Number(r.overtime_wage) || 0;
+      } else if (r.status === 'absent' && paidLeaves.includes(r.leave_type)) {
+        paidDays++;
+      } else if (r.status === 'no_work') {
+        unpaidDays++;
+      } else {
+        unpaidDays++;
+      }
+    }
+    return {
+      dailyRate: data.worker.daily_rate || 0,
+      basicSalary: data.worker.basic_salary || 0,
+      allowance: data.worker.allowance || 0,
+      otRate: data.worker.ot_rate || 0,
+      dutyRateHr: data.worker.duty_rate_hr || 0,
+      paidDays,
+      unpaidDays,
+      totalDays: paidDays + unpaidDays,
+      totalDutyHours: Math.round(totalDutyHours * 100) / 100,
+      totalOvertimeHours: Math.round(totalOvertimeHours * 100) / 100,
+      totalDailyWage: Math.round(totalDailyWage * 100) / 100,
+      totalOvertimeWage: Math.round(totalOvertimeWage * 100) / 100,
+      net: Math.round((totalDailyWage + totalOvertimeWage) * 100) / 100,
+    };
+  })();
+
+  const totalPayrollHours = payroll ? Math.round(((Number(payroll.totalDutyHours) || 0) + (Number(payroll.totalOvertimeHours) || 0)) * 100) / 100 : 0;
+  const dutyPayPct = payroll && payroll.net > 0 ? Math.round(((Number(payroll.totalDailyWage) || 0) / payroll.net) * 100) : 0;
+  const otPayPct = payroll && payroll.net > 0 ? Math.max(0, 100 - dutyPayPct) : 0;
+  const paidDaysPct = payroll && (payroll.totalDays || 0) > 0 ? Math.round((payroll.paidDays / payroll.totalDays) * 100) : 0;
+  const dutyHoursPct = totalPayrollHours > 0 ? Math.round(((Number(payroll?.totalDutyHours) || 0) / totalPayrollHours) * 100) : 0;
+  const otHoursPct = totalPayrollHours > 0 ? Math.max(0, 100 - dutyHoursPct) : 0;
+  const avgDailyEarn = payroll && payroll.paidDays > 0 ? (payroll.net / payroll.paidDays).toFixed(2) : '0.00';
+  const effectiveHrYield = totalPayrollHours > 0 && payroll ? (payroll.net / totalPayrollHours).toFixed(2) : '0.00';
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const rawDataUrl = ev.target.result;
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 256;
+        let w = img.width;
+        let h = img.height;
+        if (w > h) {
+          if (w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
+        } else {
+          if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const optimized = canvas.toDataURL('image/jpeg', 0.85);
+
+        try {
+          await api.updateWorker(id, { photo: optimized });
+          setData((prev) => prev ? { ...prev, worker: { ...prev.worker, photo: optimized } } : prev);
+        } catch (err) {
+          console.error('Failed to save worker photo', err);
+        }
+      };
+      img.src = rawDataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = async (e) => {
+    e?.stopPropagation?.();
+    try {
+      await api.updateWorker(id, { photo: null });
+      setData((prev) => prev ? { ...prev, worker: { ...prev.worker, photo: null } } : prev);
+    } catch (err) {
+      console.error('Failed to remove photo', err);
+    }
+  };
+
+  const pastMonthWorkLine = (() => {
+    if (!monthly || monthly.length === 0) return 'Regular attendance shifts verified and in good standing.';
+    const recents = [...monthly].filter(m => m.presentDays > 0 || m.absentDays > 0);
+    if (!recents.length) return 'Ready for active assignment · Record in good standing.';
+    const lastM = recents[recents.length - 1];
+    const mName = MONTHS[Number(lastM.month) - 1] || `Month ${lastM.month}`;
+    const dutyHrs = Math.round(lastM.totalDutyHours || 0);
+    const otHrs = Math.round(lastM.totalOvertimeHours || 0);
+    const totalWage = Math.round(lastM.totalWage || 0);
+    return `${mName}: ${lastM.presentDays} days on duty · ${dutyHrs}h duty + ${otHrs}h OT · Wages AED ${totalWage.toLocaleString()}`;
+  })();
+
+  const singleLanyardItem = data?.worker ? [
+    {
+      id: String(data.worker.id),
+      workerId: String(data.worker.id),
+      name: data.worker.name,
+      role: data.worker.designation || (data.worker.worker_type === 'contract' ? 'External Contractor' : 'Company Staff'),
+      designation: data.worker.designation || (data.worker.worker_type === 'contract' ? 'External Contractor' : 'Company Staff'),
+      department: data.worker.department || 'General',
+      workerType: data.worker.worker_type,
+      doj: data.worker.doj || null,
+      experience: formatExperience(data.worker.doj, data.worker.worker_type, data.worker.department),
+      tone: (data.worker.worker_type === 'contract' ? 3 : 2),
+      image: data.worker.photo || '',
+      pastMonthWork: pastMonthWorkLine,
+      basicSalary: data.worker.basic_salary,
+      allowance: data.worker.allowance,
+      dutyRateHr: data.worker.duty_rate_hr,
+      otRate: data.worker.ot_rate,
+      isEmployeeIdCard: true,
+      onPhotoUpload: handlePhotoUpload,
+      onRemovePhoto: handleRemovePhoto,
+    },
+  ] : [];
 
   const monthPct = (s) => (s && s.presentDays + s.absentDays > 0
     ? Math.round((s.presentDays / (s.presentDays + s.absentDays)) * 1000) / 10
@@ -623,6 +817,7 @@ export default function WorkerDetail({ me, onSignOut }) {
           presentDays: 0,
           lateDays: 0,
           absentDays: 0,
+          noWorkDays: 0,
           pct: null,
           totalDutyHours: 0,
           totalOvertimeHours: 0,
@@ -630,6 +825,7 @@ export default function WorkerDetail({ me, onSignOut }) {
           totalOvertimeWage: 0,
           totalWage: 0,
           ml: 0,
+          annual: 0,
           emergency: 0,
           workRelated: 0,
           casual: 0,
@@ -725,12 +921,16 @@ export default function WorkerDetail({ me, onSignOut }) {
       p: 0,
       late: 0,
       a: 0,
+      noWork: 0,
       dutyHrs: 0,
       otHrs: 0,
+      sundayOtHours: 0,
+      holidayOtHours: 0,
       dutyWage: 0,
       otWage: 0,
       totalWage: 0,
       ml: 0,
+      ann: 0,
       emg: 0,
       wr: 0,
       ca: 0,
@@ -742,12 +942,16 @@ export default function WorkerDetail({ me, onSignOut }) {
       t.p += r.presentDays || 0;
       t.late += r.lateDays || 0;
       t.a += r.absentDays || 0;
+      t.noWork += r.noWorkDays || 0;
       t.dutyHrs += r.totalDutyHours || 0;
       t.otHrs += r.totalOvertimeHours || 0;
+      t.sundayOtHours += r.sundayOtHours || 0;
+      t.holidayOtHours += r.holidayOtHours || 0;
       t.dutyWage += r.totalDailyWage || 0;
       t.otWage += r.totalOvertimeWage || 0;
       t.totalWage += r.totalWage != null ? r.totalWage : ((r.totalDailyWage || 0) + (r.totalOvertimeWage || 0));
       t.ml += r.ml || 0;
+      t.ann += r.annual || 0;
       t.emg += r.emergency || 0;
       t.wr += r.workRelated || 0;
       t.ca += r.casual || 0;
@@ -756,6 +960,8 @@ export default function WorkerDetail({ me, onSignOut }) {
     }
     t.dutyHrs = Math.round(t.dutyHrs * 100) / 100;
     t.otHrs = Math.round(t.otHrs * 100) / 100;
+    t.sundayOtHours = Math.round(t.sundayOtHours * 100) / 100;
+    t.holidayOtHours = Math.round(t.holidayOtHours * 100) / 100;
     t.dutyWage = Math.round(t.dutyWage * 100) / 100;
     t.otWage = Math.round(t.otWage * 100) / 100;
     t.totalWage = Math.round(t.totalWage * 100) / 100;
@@ -933,98 +1139,246 @@ export default function WorkerDetail({ me, onSignOut }) {
             </div>
           </div>
 
-          {avgArrival && (
-            <div className="track-avg-banner">
-              <div className="tab-icon">⏱</div>
-              <div>
-                <span className="tab-label">Average Arrival Time ({year}):</span>
-                <strong className="tab-value">{avgArrival}</strong>
-              </div>
-            </div>
-          )}
+          {/* Middle Section: Left = Payroll Summary Info, Right = Interactive Employee ID Card with sliding animation */}
+          <div className="track-mid-layout">
+            <div className="track-mid-payroll">
+              {payroll && (
+                <div className="ad-card-wrapper" style={{ height: '100%' }}>
+                  <div className="ad-card-border-glow" aria-hidden="true" />
+                  <div className="ad-card-shine-line" aria-hidden="true" />
+                  <div className="ad-card-corner-blob" aria-hidden="true" />
+                  <div className="ad-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '18px 20px' }}>
+                    
+                    {/* Header with Emblem, Title & Tags */}
+                    <div className="track-payroll-head">
+                      <div className="tph-title-wrap">
+                        <div className="tph-emblem">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="3" />
+                            <circle cx="12" cy="12" r="3" />
+                            <path d="M6 12h.01M18 12h.01" />
+                          </svg>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="tph-title-row">
+                            <h2 className="ad-card-title" style={{ fontSize: '1.15rem', margin: 0 }}>Payroll Summary</h2>
+                            <span className="ad-stat-pill pill-cyan" style={{ fontSize: '10.5px' }}>{year}</span>
+                            <span className="ad-stat-pill pill-emerald" style={{ fontSize: '10.5px' }}>
+                              <span className="tph-live-dot" />
+                              {data.worker.worker_type === 'contract' ? 'Hourly Contract' : 'Staff'}
+                            </span>
+                          </div>
+                          <div className="ad-card-sub" style={{ fontSize: '0.78rem', marginTop: 2 }}>
+                            {data.worker.worker_type === 'contract' || data.worker.department === 'Ext. Manpower'
+                              ? `Duty rate AED ${Number(data.worker.duty_rate_hr || payroll.dutyRateHr || 0).toFixed(2)}/hr · OT rate AED ${Number(data.worker.ot_rate || payroll.otRate || 0).toFixed(2)}/hr`
+                              : `Basic AED ${Number(payroll.basicSalary || 0).toLocaleString()} + Allowance AED ${Number(payroll.allowance || 0).toLocaleString()}`}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-          <div className="ad-card-wrapper">
-            <div className="ad-card-border-glow" aria-hidden="true" />
-            <div className="ad-card-shine-line" aria-hidden="true" />
-            <div className="ad-card-corner-blob" aria-hidden="true" />
-            <div className="ad-card">
-              <div className="ad-card-head">
-                <div>
-                  <h2 className="ad-card-title">Worker Profile & Compensation</h2>
-                  <div className="ad-card-sub">Employment classification and wage configuration</div>
+                    {/* HERO SPOTLIGHT: TOTAL ACCUMULATED NET PAY */}
+                    <div className="track-payroll-hero">
+                      <div className="tph-hero-glow" aria-hidden="true" />
+                      <div className="tph-hero-top">
+                        <div className="tph-hero-badge">
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                            <polyline points="17 6 23 6 23 12" />
+                          </svg>
+                          <span>Total Accumulated Net Pay</span>
+                        </div>
+                        <div className="tph-hero-rate">
+                          <span>Avg AED {avgDailyEarn}/day</span>
+                        </div>
+                      </div>
+
+                      <div className="tph-hero-number-row">
+                        <div className="tph-hero-val">
+                          <span className="tph-currency">AED</span>
+                          <span className="tph-amount">{Number(payroll.net || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="tph-hero-subtag">
+                          <span>{payroll.paidDays} active days</span> · <span>{totalPayrollHours} hrs total</span>
+                        </div>
+                      </div>
+
+                      {/* Visual Segmented Distribution Bar */}
+                      <div className="tph-dist-wrapper">
+                        <div className="tph-dist-bar">
+                          <div
+                            className="tph-dist-seg duty"
+                            style={{ width: `${dutyPayPct}%` }}
+                            title={`Duty Pay: AED ${Number(payroll.totalDailyWage || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} (${dutyPayPct}%)`}
+                          />
+                          <div
+                            className="tph-dist-seg ot"
+                            style={{ width: `${otPayPct}%` }}
+                            title={`Overtime Pay: AED ${Number(payroll.totalOvertimeWage || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} (${otPayPct}%)`}
+                          />
+                        </div>
+                        <div className="tph-dist-legend">
+                          <div className="tph-leg-item">
+                            <span className="tph-leg-dot duty" />
+                            <span className="tph-leg-name">Duty:</span>
+                            <span className="tph-leg-val">AED {Number(payroll.totalDailyWage || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({dutyPayPct}%)</span>
+                          </div>
+                          <div className="tph-leg-item">
+                            <span className="tph-leg-dot ot" />
+                            <span className="tph-leg-name">Overtime:</span>
+                            <span className="tph-leg-val">AED {Number(payroll.totalOvertimeWage || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({otPayPct}%)</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 6 BALANCED THEMED METRIC CARDS */}
+                    <div className="track-payroll-grid-v2">
+                      {/* 1. Duty Pay */}
+                      <div className="tpi-card">
+                        <div className="tpi-card-header">
+                          <div className="tpi-icon theme-sky">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="2" y="6" width="20" height="12" rx="2" />
+                              <circle cx="12" cy="12" r="2.5" />
+                              <path d="M6 12h.01M18 12h.01" />
+                            </svg>
+                          </div>
+                          <span className="tpi-label">Duty Pay</span>
+                        </div>
+                        <div className="tpi-num">
+                          AED {Number(payroll.totalDailyWage || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                        <div className="tpi-meta">
+                          <span>{payroll.totalDutyHours} hrs logged</span>
+                        </div>
+                      </div>
+
+                      {/* 2. Overtime Pay */}
+                      <div className="tpi-card">
+                        <div className="tpi-card-header">
+                          <div className="tpi-icon theme-amber">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                            </svg>
+                          </div>
+                          <span className="tpi-label">Overtime Pay</span>
+                        </div>
+                        <div className="tpi-num">
+                          AED {Number(payroll.totalOvertimeWage || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                        <div className="tpi-meta">
+                          <span>{payroll.totalOvertimeHours} OT hrs logged</span>
+                        </div>
+                      </div>
+
+                      {/* 3. Duty Hours */}
+                      <div className="tpi-card">
+                        <div className="tpi-card-header">
+                          <div className="tpi-icon theme-emerald">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10" />
+                              <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                          </div>
+                          <span className="tpi-label">Duty Hours</span>
+                        </div>
+                        <div className="tpi-num">
+                          {payroll.totalDutyHours ?? 0} <span className="tpi-unit">hrs</span>
+                        </div>
+                        <div className="tpi-progress-wrap">
+                          <div className="tpi-progress-bar theme-emerald" style={{ width: `${dutyHoursPct}%` }} />
+                        </div>
+                      </div>
+
+                      {/* 4. Overtime Hours */}
+                      <div className="tpi-card">
+                        <div className="tpi-card-header">
+                          <div className="tpi-icon theme-purple">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10" />
+                              <polyline points="12 6 12 12 14 14" />
+                              <path d="M12 2v2M8 3l1 2M16 3l-1 2" />
+                            </svg>
+                          </div>
+                          <span className="tpi-label">Overtime Hours</span>
+                        </div>
+                        <div className="tpi-num">
+                          {payroll.totalOvertimeHours ?? 0} <span className="tpi-unit">hrs</span>
+                        </div>
+                        <div className="tpi-progress-wrap">
+                          <div className="tpi-progress-bar theme-purple" style={{ width: `${otHoursPct}%` }} />
+                        </div>
+                      </div>
+
+                      {/* 5. Paid Days */}
+                      <div className="tpi-card">
+                        <div className="tpi-card-header">
+                          <div className="tpi-icon theme-teal">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                              <line x1="16" y1="2" x2="16" y2="6" />
+                              <line x1="8" y1="2" x2="8" y2="6" />
+                              <line x1="3" y1="10" x2="21" y2="10" />
+                              <polyline points="9 16 11 18 15 14" />
+                            </svg>
+                          </div>
+                          <span className="tpi-label">Paid Days</span>
+                        </div>
+                        <div className="tpi-num">
+                          {payroll.paidDays ?? 0} <span className="tpi-unit">/ {payroll.totalDays ?? 0}</span>
+                        </div>
+                        <div className="tpi-progress-wrap">
+                          <div className="tpi-progress-bar theme-teal" style={{ width: `${paidDaysPct}%` }} />
+                        </div>
+                      </div>
+
+                      {/* 6. Unpaid Days */}
+                      <div className="tpi-card">
+                        <div className="tpi-card-header">
+                          <div className="tpi-icon theme-rose">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10" />
+                              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                            </svg>
+                          </div>
+                          <span className="tpi-label">Unpaid Days</span>
+                        </div>
+                        <div className="tpi-num">
+                          {payroll.unpaidDays ?? 0} <span className="tpi-unit">days</span>
+                        </div>
+                        <div className="tpi-meta">
+                          <span>{payroll.unpaidDays === 0 ? 'Zero deductions' : 'Leaves & absences'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Strip */}
+                    <div className="track-payroll-footer">
+                      <div className="tpf-left">
+                        <span>⚡ Effective Yield: <strong>AED {effectiveHrYield}/hr</strong></span>
+                      </div>
+                      <div className="tpf-right">
+                        <span>Attendance Ratio: <strong>{paidDaysPct}%</strong></span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <span className={`ad-worker-badge ${data.worker.worker_type === 'contract' ? 'badge-contract' : 'badge-company'}`}>
-                  {data.worker.worker_type === 'contract' ? 'Contract Worker' : 'Company Staff'}
-                </span>
-              </div>
-              <div className="track-info-grid">
-                <div className="track-info-item"><span className="tii-label">Full Name</span><span className="tii-value">{data.worker.name}</span></div>
-                <div className="track-info-item"><span className="tii-label">Worker ID</span><span className="tii-value highlight-cyan">{data.worker.id}</span></div>
-                <div className="track-info-item"><span className="tii-label">Department</span><span className="tii-value">{data.worker.department || '—'}</span></div>
-                <div className="track-info-item"><span className="tii-label">Employment Type</span><span className="tii-value">{data.worker.worker_type === 'contract' ? 'Contract Worker' : 'Company Staff'}</span></div>
-                {data.worker.designation && <div className="track-info-item"><span className="tii-label">Designation</span><span className="tii-value">{data.worker.designation}</span></div>}
-                {data.worker.doj && <div className="track-info-item"><span className="tii-label">Date of Joining</span><span className="tii-value">{new Date(data.worker.doj + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span></div>}
-                {data.worker.worker_type === 'contract' ? (
-                  <>
-                    <div className="track-info-item"><span className="tii-label">Duty Rate / hr</span><span className="tii-value wage-green">AED {Number(data.worker.duty_rate_hr || 0).toFixed(2)}</span></div>
-                    <div className="track-info-item"><span className="tii-label">Overtime Rate / hr</span><span className="tii-value wage-green">AED {Number(data.worker.ot_rate || 0).toFixed(2)}</span></div>
-                  </>
-                ) : (
-                  <>
-                    <div className="track-info-item"><span className="tii-label">Basic Salary</span><span className="tii-value wage-green">AED {Number(data.worker.basic_salary || 0).toLocaleString()}</span></div>
-                    <div className="track-info-item"><span className="tii-label">Monthly Allowance</span><span className="tii-value wage-green">AED {Number(data.worker.allowance || 0).toLocaleString()}</span></div>
-                    {Number(data.worker.ot_rate) > 0 && <div className="track-info-item"><span className="tii-label">Overtime Rate / hr</span><span className="tii-value wage-green">AED {Number(data.worker.ot_rate).toFixed(2)}</span></div>}
-                  </>
-                )}
+              )}
+            </div>
+
+            <div className="track-mid-idcard">
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                <TeamLanyardRail
+                  items={singleLanyardItem}
+                  autoplay={false}
+                  hideRail={true}
+                  hideCaption={true}
+                  cardWidth={240}
+                />
               </div>
             </div>
           </div>
-
-          {data.payroll && (data.payroll.dailyRate > 0 || data.payroll.basicSalary > 0) && (
-            <div className="ad-card-wrapper">
-              <div className="ad-card-border-glow" aria-hidden="true" />
-              <div className="ad-card-shine-line" aria-hidden="true" />
-              <div className="ad-card-corner-blob" aria-hidden="true" />
-              <div className="ad-card">
-                <div className="ad-card-head">
-                  <div>
-                    <h2 className="ad-card-title">Payroll Summary — {year}</h2>
-                    <div className="ad-card-sub">Based on {data.payroll.basicSalary ? `basic AED ${data.payroll.basicSalary.toLocaleString()} + allowance AED ${data.payroll.allowance.toLocaleString()}` : `daily rate of AED ${data.payroll.dailyRate.toLocaleString()}`} and recorded attendance.</div>
-                  </div>
-                </div>
-                <div className="track-payroll-grid">
-                  <div className="track-payroll-item highlight">
-                    <div className="tpi-label">Total Net Pay</div>
-                    <div className="tpi-value">AED {data.payroll.net.toLocaleString()}</div>
-                  </div>
-                  <div className="track-payroll-item">
-                    <div className="tpi-label">Duty Pay</div>
-                    <div className="tpi-value">AED {data.payroll.totalDailyWage.toLocaleString()}</div>
-                  </div>
-                  <div className="track-payroll-item">
-                    <div className="tpi-label">Overtime Pay</div>
-                    <div className="tpi-value">AED {data.payroll.totalOvertimeWage.toLocaleString()}</div>
-                  </div>
-                  <div className="track-payroll-item">
-                    <div className="tpi-label">Duty Hours</div>
-                    <div className="tpi-value">{data.payroll.totalDutyHours}<span> hrs</span></div>
-                  </div>
-                  <div className="track-payroll-item">
-                    <div className="tpi-label">Overtime Hours</div>
-                    <div className="tpi-value">{data.payroll.totalOvertimeHours}<span> hrs</span></div>
-                  </div>
-                  <div className="track-payroll-item">
-                    <div className="tpi-label">Paid Days</div>
-                    <div className="tpi-value">{data.payroll.paidDays}<span> of {data.payroll.totalDays}</span></div>
-                  </div>
-                  <div className="track-payroll-item">
-                    <div className="tpi-label">Unpaid Days</div>
-                    <div className="tpi-value">{data.payroll.unpaidDays}<span> days</span></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Periodic Attendance & Wages Breakdown Table */}
           <div className="ad-card-wrapper">
@@ -1091,19 +1445,23 @@ export default function WorkerDetail({ me, onSignOut }) {
                     <tr>
                       <th rowSpan={2} className="num th-col-id" style={{ width: 44, textAlign: 'center' }}>#</th>
                       <th rowSpan={2} className="corner th-col-period">Period</th>
-                      <th colSpan={4} className="grp grp-attendance">Attendance</th>
-                      <th colSpan={4} className="grp grp-wages soft">Wages (AED)</th>
-                      <th colSpan={6} className="grp grp-leave soft">Leave days by type</th>
+                      <th colSpan={5} className="grp grp-attendance">Attendance</th>
+                      <th colSpan={7} className="grp grp-wages soft">Wages (AED)</th>
+                      <th colSpan={7} className="grp grp-leave soft">Leave days by type</th>
                     </tr>
                     <tr>
                       <th className="th-sub th-col-present num">Present</th>
                       <th className="th-sub th-col-late num">Late</th>
                       <th className="th-sub th-col-absent num">Absent</th>
+                      <th className="th-sub th-col-nowork num">No Work</th>
                       <th className="th-sub th-col-avg num">Avg %</th>
                       <th className="th-sub th-col-duty-hrs num">Duty hrs</th>
                       <th className="th-sub th-col-ot-hrs num">OT hrs</th>
+                      <th className="th-sub th-col-rate num">Duty pay/hr</th>
+                      <th className="th-sub th-col-rate num">OT pay/hr</th>
                       <th className="th-sub th-col-duty-pay num">Duty pay</th>
                       <th className="th-sub th-col-ot-pay num">OT pay</th>
+                      <th className="th-sub th-col-addl-allow num">Addl. Allow</th>
                       {LEAVE_KEYS.map((k) => (
                         <th key={k} className={`th-sub th-col-leave num th-leave-${k}`}>
                           <span className="ldot" style={{ background: LEAVE_COLORS[k] }} />
@@ -1116,7 +1474,7 @@ export default function WorkerDetail({ me, onSignOut }) {
                     {periodView === 'monthly' ? (
                       monthsWithData.filter(({ i }) => summaryMonth === 'all' || String(i + 1).padStart(2, '0') === summaryMonth).map(({ mn, i, s }, idx) => {
                         const pct = monthPct(s);
-                        const counts = { ml: s.ml, emergency: s.emergency, work_related: s.workRelated, casual: s.casual, unpaid: s.unpaid, unspecified: s.unspecified };
+                        const counts = { ml: s.ml, annual: s.annual, emergency: s.emergency, work_related: s.workRelated, casual: s.casual, unpaid: s.unpaid, unspecified: s.unspecified };
                         return (
                           <tr key={mn} className="clickrow" onClick={() => setCalMonth(i + 1)}>
                             <td className="num">{idx + 1}</td>
@@ -1124,11 +1482,15 @@ export default function WorkerDetail({ me, onSignOut }) {
                             <td className="num">{s.presentDays}</td>
                             <td className="num" style={{ color: (s.lateDays || 0) ? '#F59E0B' : 'inherit' }}>{s.lateDays || '–'}</td>
                             <td className="num warn-num">{s.absentDays}</td>
+                            <td className="num" style={{ color: (s.noWorkDays || 0) ? '#64748B' : 'inherit' }}>{s.noWorkDays || '–'}</td>
                             <td className="num">{pct != null && <span className={`pct ${pct < 80 ? 'low' : ''}`}>{pct}%</span>}</td>
                             <td className="num">{s.totalDutyHours || '–'}</td>
-                            <td className="num">{s.totalOvertimeHours || '–'}</td>
+                            <td className="num">{renderOtCell(s.totalOvertimeHours, s.sundayOtHours, s.holidayOtHours)}</td>
+                            <td className="num">{s.totalDutyHours > 0 ? ((s.totalDailyWage || 0) / s.totalDutyHours).toFixed(2) : '–'}</td>
+                            <td className="num">{s.totalOvertimeHours > 0 ? ((s.totalOvertimeWage || 0) / s.totalOvertimeHours).toFixed(2) : '–'}</td>
                             <td className="num">{s.totalDailyWage ? fmtAED(s.totalDailyWage) : '–'}</td>
                             <td className="num">{s.totalOvertimeWage ? fmtAED(s.totalOvertimeWage) : '–'}</td>
+                            <td className="num">{data.worker.additional_allowance ? fmtAED(data.worker.additional_allowance) : '–'}</td>
                             {LEAVE_KEYS.map((k) => leaveCell(counts[k], k))}
                           </tr>
                         );
@@ -1138,7 +1500,7 @@ export default function WorkerDetail({ me, onSignOut }) {
                         const pct = row.presentDays + row.absentDays > 0
                           ? Math.round((row.presentDays / (row.presentDays + row.absentDays)) * 1000) / 10
                           : null;
-                        const counts = { ml: row.ml, emergency: row.emergency, work_related: row.workRelated, casual: row.casual, unpaid: row.unpaid, unspecified: row.unspecified };
+                        const counts = { ml: row.ml, annual: row.annual, emergency: row.emergency, work_related: row.workRelated, casual: row.casual, unpaid: row.unpaid, unspecified: row.unspecified };
                         return (
                           <tr key={row.label}>
                             <td className="num">{idx + 1}</td>
@@ -1146,11 +1508,15 @@ export default function WorkerDetail({ me, onSignOut }) {
                             <td className="num">{row.presentDays}</td>
                             <td className="num" style={{ color: row.lateDays ? '#F59E0B' : 'inherit' }}>{row.lateDays || '–'}</td>
                             <td className="num warn-num">{row.absentDays}</td>
+                            <td className="num" style={{ color: (row.noWorkDays || 0) ? '#64748B' : 'inherit' }}>{row.noWorkDays || '–'}</td>
                             <td className="num">{pct != null && <span className={`pct ${pct < 80 ? 'low' : ''}`}>{pct}%</span>}</td>
                             <td className="num">{row.totalDutyHours || '–'}</td>
-                            <td className="num">{row.totalOvertimeHours || '–'}</td>
+                            <td className="num">{renderOtCell(row.totalOvertimeHours, row.sundayOtHours, row.holidayOtHours)}</td>
+                            <td className="num">{row.totalDutyHours > 0 ? ((row.totalDailyWage || 0) / row.totalDutyHours).toFixed(2) : '–'}</td>
+                            <td className="num">{row.totalOvertimeHours > 0 ? ((row.totalOvertimeWage || 0) / row.totalOvertimeHours).toFixed(2) : '–'}</td>
                             <td className="num">{row.totalDailyWage ? fmtAED(row.totalDailyWage) : '–'}</td>
                             <td className="num">{row.totalOvertimeWage ? fmtAED(row.totalOvertimeWage) : '–'}</td>
+                            <td className="num">{data.worker.additional_allowance ? fmtAED(data.worker.additional_allowance) : '–'}</td>
                             {LEAVE_KEYS.map((k) => leaveCell(counts[k], k))}
                           </tr>
                         );
@@ -1158,7 +1524,7 @@ export default function WorkerDetail({ me, onSignOut }) {
                     )}
                     {((periodView === 'monthly' && monthsWithData.length === 0) || (periodView !== 'monthly' && (!periodRows || periodRows.length === 0))) && (
                       <tr>
-                        <td colSpan={16} className="muted empty-row">No attendance marked yet for {year}.</td>
+                        <td colSpan={21} className="muted empty-row">No attendance marked yet for {year}.</td>
                       </tr>
                     )}
                   </tbody>
@@ -1169,18 +1535,27 @@ export default function WorkerDetail({ me, onSignOut }) {
                       <td className="num">{activePeriodInfo.totals?.p ?? 0}</td>
                       <td className="num" style={{ color: activePeriodInfo.totals?.late ? '#F59E0B' : 'inherit' }}>{activePeriodInfo.totals?.late || '–'}</td>
                       <td className="num warn-num">{activePeriodInfo.totals?.a ?? 0}</td>
+                      <td className="num" style={{ color: (activePeriodInfo.totals?.noWork || 0) ? '#64748B' : 'inherit' }}>{activePeriodInfo.totals?.noWork || '–'}</td>
                       <td className="num">{activePeriodInfo.totals?.pct != null && <span className={`pct ${activePeriodInfo.totals.pct < 80 ? 'low' : ''}`}>{activePeriodInfo.totals.pct}%</span>}</td>
                       <td className="num">{activePeriodInfo.totals?.dutyHrs ? activePeriodInfo.totals.dutyHrs.toFixed(1) : '–'}</td>
-                      <td className="num">{activePeriodInfo.totals?.otHrs ? activePeriodInfo.totals.otHrs.toFixed(1) : '–'}</td>
+                      <td className="num">{renderOtCell(activePeriodInfo.totals?.otHrs, activePeriodInfo.totals?.sundayOtHours, activePeriodInfo.totals?.holidayOtHours)}</td>
+                      <td className="num">{activePeriodInfo.totals?.dutyHrs > 0 ? ((activePeriodInfo.totals.dutyWage || 0) / activePeriodInfo.totals.dutyHrs).toFixed(2) : '–'}</td>
+                      <td className="num">{activePeriodInfo.totals?.otHrs > 0 ? ((activePeriodInfo.totals.otWage || 0) / activePeriodInfo.totals.otHrs).toFixed(2) : '–'}</td>
                       <td className="num">{fmtAED(activePeriodInfo.totals?.dutyWage)}</td>
                       <td className="num">{fmtAED(activePeriodInfo.totals?.otWage)}</td>
-                      {LEAVE_KEYS.map((k) => leaveCell(activePeriodInfo.totals ? activePeriodInfo.totals[k === 'emergency' ? 'emg' : k === 'work_related' ? 'wr' : k === 'casual' ? 'ca' : k === 'unpaid' ? 'un' : k === 'unspecified' ? 'us' : k] : 0, k))}
+                      <td className="num">{data.worker.additional_allowance ? fmtAED(data.worker.additional_allowance * (activePeriodInfo.summaryRows?.length || 0)) : '–'}</td>
+                      {LEAVE_KEYS.map((k) => leaveCell(activePeriodInfo.totals ? activePeriodInfo.totals[k === 'annual' ? 'ann' : k === 'emergency' ? 'emg' : k === 'work_related' ? 'wr' : k === 'casual' ? 'ca' : k === 'unpaid' ? 'un' : k === 'unspecified' ? 'us' : k] : 0, k))}
                     </tr>
                   </tfoot>
                 </table>
               </div>
-              <div className="tbl-note" style={{ color: '#94A3B8', marginTop: 14 }}>
-                {monthsWithData.length} of 12 months have marked records. Leave colours match the calendar below.
+              <div className="tbl-note" style={{ color: '#94A3B8', marginTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                <span>{monthsWithData.length} of 12 months have marked records. Leave colours match the calendar below.</span>
+                {data?.worker?.worker_type !== 'contract' && (
+                  <span style={{ fontSize: '0.82em', background: 'rgba(2, 132, 199, 0.12)', color: '#38BDF8', padding: '3px 10px', borderRadius: 999, border: '1px solid rgba(56, 189, 248, 0.25)', fontWeight: 600 }}>
+                    🏖️ UAE Annual Leave Entitlement: {tot.ann || 0} / 30 days used ({Math.max(0, 30 - (tot.ann || 0))} days remaining)
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -1249,6 +1624,9 @@ export default function WorkerDetail({ me, onSignOut }) {
               <div className="cal-legend">
                 <span className="lgd"><span className="swc present-sw" />Present</span>
                 <span className="lgd"><span className="swc" style={{ background: '#F59E0B' }} />Late Present</span>
+                <span className="lgd"><span className="swc" style={{ background: '#F97316' }} />Sunday OT</span>
+                <span className="lgd"><span className="swc" style={{ background: '#8B5CF6' }} />Holiday OT</span>
+                <span className="lgd"><span className="swc" style={{ background: '#64748B' }} />No Work</span>
                 {LEAVE_KEYS.map((k) => (
                   <span key={k} className="lgd">
                     <span className="swc" style={{ background: LEAVE_COLORS[k] }} />{LEAVE_LABELS[k]}
@@ -1257,6 +1635,92 @@ export default function WorkerDetail({ me, onSignOut }) {
                 <span className="lgd"><span className="swc" style={{ background: '#F59E0B' }} />Govt Holiday</span>
                 <span className="lgd"><span className="swc" style={{ background: '#6366F1' }} />Company Off</span>
                 <span className="lgd"><span className="swc none-sw" />No record</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Daily Attendance & Site Records Card */}
+          <div className="ad-card-wrapper" style={{ marginTop: 24 }}>
+            <div className="ad-card-border-glow" aria-hidden="true" />
+            <div className="ad-card-shine-line" aria-hidden="true" />
+            <div className="ad-card-corner-blob" aria-hidden="true" />
+            <div className="ad-card">
+              <div className="ad-card-head" style={{ flexWrap: 'wrap' }}>
+                <div>
+                  <h2 className="ad-card-title">Daily Attendance & Site Deployment — {activePeriodInfo.label}</h2>
+                  <div className="ad-card-sub">Daily log of client site deployments, clock in/out times, hours, and wages.</div>
+                </div>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.85em', color: '#94A3B8' }}>{activePeriodInfo.dailyRows?.length || 0} days recorded</span>
+                </div>
+              </div>
+
+              <div className="ad-table-container">
+                <table className="tbl daily-records-tbl">
+                  <thead>
+                    <tr>
+                      <th className="num th-col-id" style={{ width: 44, textAlign: 'center' }}>#</th>
+                      <th style={{ minWidth: 100 }}>Date</th>
+                      <th style={{ width: 60 }}>Day</th>
+                      <th style={{ minWidth: 180 }}>Company / Site</th>
+                      <th style={{ minWidth: 110 }}>Status</th>
+                      <th className="num" style={{ width: 70 }}>In</th>
+                      <th className="num" style={{ width: 70 }}>Out</th>
+                      <th className="num" style={{ width: 80 }}>Duty Hrs</th>
+                      <th className="num" style={{ width: 80 }}>OT Hrs</th>
+                      <th className="num" style={{ width: 90 }}>Daily Wage</th>
+                      <th style={{ minWidth: 140 }}>Notes / Leave</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(activePeriodInfo.dailyRows || []).map((r, idx) => {
+                      const dow = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(r.date + 'T00:00:00Z').getUTCDay()];
+                      const isSun = dow === 'Sun';
+                      const isHol = !!holidayMap[r.date];
+                      const totalDayWage = (Number(r.daily_wage) || 0) + (Number(r.overtime_wage) || 0);
+                      return (
+                        <tr key={r.date}>
+                          <td className="num">{idx + 1}</td>
+                          <td><strong>{r.date}</strong></td>
+                          <td style={{ color: isSun ? '#F59E0B' : isHol ? '#A855F7' : 'inherit', fontWeight: isSun || isHol ? 600 : 400 }}>{dow}</td>
+                          <td>
+                            {r.site ? (
+                              <span className="site-pill">{r.site}</span>
+                            ) : (
+                              <span className="exp-dash">—</span>
+                            )}
+                          </td>
+                          <td>
+                            <span className={`sv-mark ${r.status}${r.is_late ? ' late' : ''}${r.ot_type ? ` ot-${r.ot_type}` : ''}`} style={{ fontSize: '0.78em', padding: '3px 8px' }}>
+                              {r.status === 'present'
+                                ? (r.ot_type === 'sunday'
+                                    ? '☀️ OT (Sun)'
+                                    : r.ot_type === 'holiday'
+                                      ? '🎉 OT (Hol)'
+                                      : (r.is_late ? '⏰ Late' : '✓ Present'))
+                                : (r.status === 'no_work'
+                                  ? '⚪ No Work'
+                                  : `✕ ${LEAVE_LABELS[r.leave_type] || 'Absent'}`)}
+                            </span>
+                          </td>
+                          <td className="num">{r.time_in || '—'}</td>
+                          <td className="num">{r.time_out || '—'}</td>
+                          <td className="num">{r.duty_hours ? `${r.duty_hours}h` : '–'}</td>
+                          <td className="num" style={{ color: r.overtime_hours ? '#38BDF8' : 'inherit' }}>{r.overtime_hours ? `+${r.overtime_hours}h` : '–'}</td>
+                          <td className="num">{totalDayWage > 0 ? fmtAED(totalDayWage) : '–'}</td>
+                          <td style={{ fontSize: '0.86em', color: '#94A3B8' }}>{r.notes || (r.leave_type ? LEAVE_LABELS[r.leave_type] : '—')}</td>
+                        </tr>
+                      );
+                    })}
+                    {(!activePeriodInfo.dailyRows || activePeriodInfo.dailyRows.length === 0) && (
+                      <tr>
+                        <td colSpan={11} className="muted empty-row" style={{ textAlign: 'center', padding: 24 }}>
+                          No daily records found for {activePeriodInfo.label}.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -1329,6 +1793,22 @@ function CalendarCells(month, year, recordsMap, todayIso, holidayMap = {}) {
       continue;
     }
 
+    if (r.status === 'no_work') {
+      const nwTime = r.recorded_at ? ` · ${new Date(r.recorded_at).toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit' })}` : '';
+      const tipText = `${iso} — No Work${r.notes ? ` · ${r.notes}` : ''}${nwTime}${holLabel ? ` · ${holLabel}` : ''}`;
+      cells.push(
+        <Tip key={iso} text={tipText}>
+          <div
+            className="cell no-work"
+            style={{ background: 'rgba(100, 116, 139, 0.18)', borderColor: 'rgba(100, 116, 139, 0.55)' }}
+          >
+            <span className="mark" style={{ background: '#64748B', color: '#FFFFFF', boxShadow: '0 0 10px rgba(100, 116, 139, 0.6)', fontWeight: 700 }}>{d}</span>
+          </div>
+        </Tip>,
+      );
+      continue;
+    }
+
     if (r.status === 'absent') {
       const type = r.leave_type && LEAVE_META[r.leave_type] ? r.leave_type : 'unspecified';
       const [label, color] = LEAVE_META[type];
@@ -1341,6 +1821,42 @@ function CalendarCells(month, year, recordsMap, todayIso, holidayMap = {}) {
             style={{ background: `${color}1E`, borderColor: `${color}55` }}
           >
             <span className="mark" style={{ background: color, color: '#FFFFFF', boxShadow: `0 0 10px ${color}88`, fontWeight: 700 }}>{d}</span>
+          </div>
+        </Tip>,
+      );
+      continue;
+    }
+
+    if (r.ot_type === 'sunday') {
+      const timeStr = r.recorded_at ? ` · ${new Date(r.recorded_at).toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit' })}` : '';
+      const otHrsStr = r.overtime_hours ? ` · ${r.overtime_hours}h OT` : '';
+      const otWageStr = r.overtime_wage ? ` · AED ${r.overtime_wage}` : '';
+      const tipText = `${iso} — Sunday Overtime${otHrsStr}${otWageStr}${timeStr}`;
+      cells.push(
+        <Tip key={iso} text={tipText}>
+          <div
+            className="cell ot-sun"
+            style={{ background: 'rgba(249, 115, 22, 0.18)', borderColor: 'rgba(249, 115, 22, 0.55)' }}
+          >
+            <span className="mark" style={{ background: 'linear-gradient(135deg, #EA580C, #F97316)', color: '#FFFFFF', boxShadow: '0 0 10px rgba(249, 115, 22, 0.6)', fontWeight: 700 }}>{d}</span>
+          </div>
+        </Tip>,
+      );
+      continue;
+    }
+
+    if (r.ot_type === 'holiday') {
+      const timeStr = r.recorded_at ? ` · ${new Date(r.recorded_at).toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit' })}` : '';
+      const otHrsStr = r.overtime_hours ? ` · ${r.overtime_hours}h OT` : '';
+      const otWageStr = r.overtime_wage ? ` · AED ${r.overtime_wage}` : '';
+      const tipText = `${iso} — Holiday Overtime${holLabel ? ` (${holLabel})` : ''}${otHrsStr}${otWageStr}${timeStr}`;
+      cells.push(
+        <Tip key={iso} text={tipText}>
+          <div
+            className="cell ot-hol"
+            style={{ background: 'rgba(139, 92, 246, 0.18)', borderColor: 'rgba(139, 92, 246, 0.55)' }}
+          >
+            <span className="mark" style={{ background: 'linear-gradient(135deg, #7C3AED, #A855F7)', color: '#FFFFFF', boxShadow: '0 0 10px rgba(139, 92, 246, 0.6)', fontWeight: 700 }}>{d}</span>
           </div>
         </Tip>,
       );

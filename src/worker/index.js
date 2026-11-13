@@ -12,15 +12,43 @@ const SECRET = 'attendance-tracker-phase1-secret';
 const SESSION_TTL = 12 * 60 * 60; // 12h
 const BACKFILL_LIMIT_DAYS = 14;
 
-export const LEAVE_TYPES = ['ml', 'emergency', 'work_related', 'casual', 'unpaid', 'unspecified'];
+export const LEAVE_TYPES = ['ml', 'annual', 'emergency', 'work_related', 'casual', 'unpaid', 'unspecified'];
 export const LEAVE_LABELS = {
   ml: 'Medical Leave (ML)',
+  annual: 'Annual Leave',
   emergency: 'Emergency Leave',
   work_related: 'Work-related',
   casual: 'Casual Leave',
   unpaid: 'Unpaid Leave',
   unspecified: 'Unspecified',
 };
+
+export const DEFAULT_COMPANIES = [
+  { id: 'cmp_1', name: 'Jelnar Electrical/Creek', active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'cmp_2', name: 'Experts Group/Sensoria', active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'cmp_3', name: 'Nascon Camelia 515 Vilas', active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'cmp_4', name: 'DURAT AL FAIHA', active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'cmp_5', name: 'Small Scale Work', active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'cmp_6', name: 'Man Power Supply', active: true, created_at: '2024-01-01T00:00:00Z' },
+];
+
+export async function getCompaniesList(sb) {
+  try {
+    const { data } = await sb.from('meta').select('value').eq('key', 'companies_list').single();
+    if (data?.value) {
+      const parsed = JSON.parse(data.value);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {}
+  try {
+    await sb.from('meta').upsert({ key: 'companies_list', value: JSON.stringify(DEFAULT_COMPANIES) });
+  } catch {}
+  return DEFAULT_COMPANIES;
+}
+
+export async function saveCompaniesList(sb, list) {
+  await sb.from('meta').upsert({ key: 'companies_list', value: JSON.stringify(list) });
+}
 
 // ---------------------------------------------------------------------------
 export const app = new Hono();
@@ -147,6 +175,7 @@ async function seed(sb) {
         rov_monthly: w.rovMonth || 0,
         transport_monthly: w.transportMonth || 0,
         other_expense_hr: w.otherExpHr || 0,
+        additional_allowance: w.additionalAllowance || 0,
       }),
     }, { onConflict: 'key' });
   }
@@ -228,8 +257,8 @@ async function seed(sb) {
       } else {
         const lr = Math.random();
         const lt =
-          lr < 0.32 ? 'ml' : lr < 0.52 ? 'emergency' : lr < 0.72 ? 'casual' :
-          lr < 0.87 ? 'work_related' : lr < 0.95 ? 'unpaid' : 'unspecified';
+          lr < 0.25 ? 'ml' : lr < 0.45 ? 'annual' : lr < 0.60 ? 'emergency' : lr < 0.75 ? 'casual' :
+          lr < 0.88 ? 'work_related' : lr < 0.95 ? 'unpaid' : 'unspecified';
         attRows.push({ worker_id: w.id, date, status: 'absent', leave_type: lt, notes: null, recorded_by: 'demo-data', recorded_at: ts, updated_at: ts, is_late: false });
       }
     }
@@ -400,7 +429,19 @@ app.get('/api/workers', async (c) => {
   }
   for (const w of data || []) {
     const ex = extraMap[w.id];
-    if (ex) { w.worker_type = ex.worker_type || 'company'; w.duty_rate_hr = ex.duty_rate_hr || 0; }
+    if (ex) {
+      w.worker_type = ex.worker_type || 'company';
+      w.duty_rate_hr = ex.duty_rate_hr || 0;
+      if (!w.doj && ex.doj) w.doj = ex.doj;
+      if (!w.designation && ex.designation) w.designation = ex.designation;
+      if (!w.basic_salary && ex.basic_salary) w.basic_salary = ex.basic_salary;
+      if (!w.allowance && ex.allowance) w.allowance = ex.allowance;
+      if (!w.ot_rate && ex.ot_rate) w.ot_rate = ex.ot_rate;
+      if (ex.rov_monthly) w.rov_monthly = ex.rov_monthly;
+      if (ex.transport_monthly) w.transport_monthly = ex.transport_monthly;
+      if (ex.other_expense_hr) w.other_expense_hr = ex.other_expense_hr;
+      if (ex.additional_allowance) w.additional_allowance = ex.additional_allowance;
+    }
     else { w.worker_type = 'company'; w.duty_rate_hr = 0; }
   }
 
@@ -471,6 +512,7 @@ app.post('/api/workers', async (c) => {
     rov_monthly: Math.max(0, Number(body.rovMonthly) || 0),
     transport_monthly: Math.max(0, Number(body.transportMonthly) || 0),
     other_expense_hr: Math.max(0, Number(body.otherExpenseHr) || 0),
+    additional_allowance: Math.max(0, Number(body.additionalAllowance) || 0),
   }) });
 
   return c.json({ ok: true, worker: { id: workerId, name, department, email: email || null, phone: phone || null, daily_rate: dailyRate, basic_salary: basicSalary, allowance: allowanceAmt, ot_rate: otRateVal, designation, worker_type: workerType, duty_rate_hr: dutyRateHr } });
@@ -500,21 +542,29 @@ app.patch('/api/workers/:id', async (c) => {
   if ('otRate' in body) updates.ot_rate = Math.max(0, Number(body.otRate) || 0);
   if ('designation' in body) updates.designation = (body.designation || '').trim() || null;
 
-  if (Object.keys(updates).length === 0) return c.json({ error: 'No valid fields to update' }, 400);
+  const hasExtraFields = ['photo', 'workerType', 'dutyRateHr', 'basicSalary', 'allowance', 'otRate', 'designation', 'doj', 'rovMonthly', 'transportMonthly', 'otherExpenseHr', 'additionalAllowance'].some(k => k in body);
+  if (Object.keys(updates).length === 0 && !hasExtraFields) return c.json({ error: 'No valid fields to update' }, 400);
 
-  let { data, error } = await sb.from('workers').update(updates).eq('id', id)
-    .select('id, name, department, email, phone, daily_rate, basic_salary, allowance, ot_rate, designation').single();
-  if (error) {
-    const safeUpdates = {};
-    for (const k of ['name', 'department', 'email', 'phone', 'daily_rate']) {
-      if (k in updates) safeUpdates[k] = updates[k];
+  let data = null;
+  let error = null;
+  if (Object.keys(updates).length > 0) {
+    ({ data, error } = await sb.from('workers').update(updates).eq('id', id)
+      .select('id, name, department, email, phone, daily_rate, basic_salary, allowance, ot_rate, designation').single());
+    if (error) {
+      const safeUpdates = {};
+      for (const k of ['name', 'department', 'email', 'phone', 'daily_rate']) {
+        if (k in updates) safeUpdates[k] = updates[k];
+      }
+      if (Object.keys(safeUpdates).length > 0) {
+        ({ data, error } = await sb.from('workers').update(safeUpdates).eq('id', id)
+          .select('id, name, department, email, phone, daily_rate').single());
+      }
     }
-    if (Object.keys(safeUpdates).length > 0) {
-      ({ data, error } = await sb.from('workers').update(safeUpdates).eq('id', id)
-        .select('id, name, department, email, phone, daily_rate').single());
-    }
+    if (error) return c.json({ error: error.message }, 500);
+  } else {
+    ({ data, error } = await sb.from('workers').select('id, name, department, email, phone, daily_rate, basic_salary, allowance, ot_rate, designation').eq('id', id).single());
+    if (error) return c.json({ error: error.message }, 500);
   }
-  if (error) return c.json({ error: error.message }, 500);
   if (!data) return c.json({ error: 'Worker not found' }, 404);
 
   {
@@ -522,6 +572,7 @@ app.patch('/api/workers/:id', async (c) => {
     const { data: existing } = await sb.from('meta').select('value').eq('key', metaKey).single();
     let extra = {};
     if (existing?.value) try { extra = JSON.parse(existing.value); } catch {}
+    if ('photo' in body) extra.photo = body.photo || null;
     if ('workerType' in body) extra.worker_type = body.workerType === 'contract' ? 'contract' : 'company';
     if ('dutyRateHr' in body) extra.duty_rate_hr = Math.max(0, Number(body.dutyRateHr) || 0);
     if ('basicSalary' in body) extra.basic_salary = Math.max(0, Number(body.basicSalary) || 0);
@@ -532,11 +583,21 @@ app.patch('/api/workers/:id', async (c) => {
     if ('rovMonthly' in body) extra.rov_monthly = Math.max(0, Number(body.rovMonthly) || 0);
     if ('transportMonthly' in body) extra.transport_monthly = Math.max(0, Number(body.transportMonthly) || 0);
     if ('otherExpenseHr' in body) extra.other_expense_hr = Math.max(0, Number(body.otherExpenseHr) || 0);
+    if ('additionalAllowance' in body) extra.additional_allowance = Math.max(0, Number(body.additionalAllowance) || 0);
     await sb.from('meta').upsert({ key: metaKey, value: JSON.stringify(extra) });
     Object.assign(data, extra);
   }
 
   return c.json({ ok: true, worker: data });
+});
+
+app.get('/api/companies', async (c) => {
+  const role = await getRole(c);
+  if (!role) return c.json({ error: 'unauthorized' }, 401);
+  const sb = c.get('sb');
+  const all = c.req.query('all') === '1' || c.req.query('all') === 'true';
+  const list = await getCompaniesList(sb);
+  return c.json({ companies: all ? list : list.filter(item => item.active !== false) });
 });
 
 app.get('/api/attendance', async (c) => {
@@ -559,18 +620,40 @@ app.get('/api/attendance', async (c) => {
     const wid = t.key.split(':')[1];
     try { timeMap[wid] = JSON.parse(t.value); } catch {}
   }
+
+  const { data: siteEntries } = await sb.from('meta').select('key, value').like('key', 'worker_site:%');
+  const lastSites = {};
+  for (const s of siteEntries || []) {
+    const wid = s.key.replace('worker_site:', '');
+    try {
+      const parsed = JSON.parse(s.value);
+      if (parsed?.site) lastSites[wid] = parsed.site;
+    } catch {}
+  }
+
   for (const r of data || []) {
+    if (r.leave_type === 'no_work' || r.status === 'no_work') {
+      r.status = 'no_work';
+      r.leave_type = null;
+    }
     const td = timeMap[r.worker_id];
     if (td) {
       if (!r.time_in) r.time_in = td.time_in || null;
       if (!r.time_out) r.time_out = td.time_out || null;
-      if (!r.duty_hours && td.duty_hours) r.duty_hours = td.duty_hours;
-      if (!r.overtime_hours && td.overtime_hours) r.overtime_hours = td.overtime_hours;
-      if (!r.daily_wage && td.daily_wage) r.daily_wage = td.daily_wage;
-      if (!r.overtime_wage && td.overtime_wage) r.overtime_wage = td.overtime_wage;
+      if (r.duty_hours === null || r.duty_hours === undefined) r.duty_hours = td.duty_hours;
+      if (r.overtime_hours === null || r.overtime_hours === undefined) r.overtime_hours = td.overtime_hours;
+      if (r.daily_wage === null || r.daily_wage === undefined) r.daily_wage = td.daily_wage;
+      if (r.overtime_wage === null || r.overtime_wage === undefined) r.overtime_wage = td.overtime_wage;
+      if (td.ot_type) r.ot_type = td.ot_type;
+      if (td.site) r.site = td.site;
+      if (td.site) r.site = td.site;
+    }
+    if (!r.ot_type && r.status === 'present') {
+      if (r.notes?.includes('Sunday Overtime')) r.ot_type = 'sunday';
+      else if (r.notes?.includes('Holiday Overtime')) r.ot_type = 'holiday';
     }
   }
-  return c.json({ records: data });
+  return c.json({ records: data, lastSites });
 });
 
 app.post('/api/attendance', async (c) => {
@@ -578,10 +661,12 @@ app.post('/api/attendance', async (c) => {
   const body = await c.req.json();
   const { workerId, date, status } = body;
   const leaveType = status === 'absent' ? (body.leaveType || 'unspecified') : null;
-  const notes = body.notes ? String(body.notes).slice(0, 300) : null;
-  const isLate = status === 'present' && body.isLate ? true : false;
+  const otType = status === 'present' && ['sunday', 'holiday'].includes(body.otType) ? body.otType : null;
+  const defaultNotes = otType === 'sunday' ? 'Sunday Overtime' : otType === 'holiday' ? 'Holiday Overtime' : null;
+  const notes = body.notes ? String(body.notes).slice(0, 300) : defaultNotes;
+  const isLate = status === 'present' && !otType && body.isLate ? true : false;
 
-  if (!validDate(date) || !['present', 'absent'].includes(status)) {
+  if (!validDate(date) || !['present', 'absent', 'no_work'].includes(status)) {
     return c.json({ error: 'bad input' }, 400);
   }
   if (status === 'absent' && !LEAVE_TYPES.includes(leaveType)) {
@@ -612,14 +697,19 @@ app.post('/api/attendance', async (c) => {
   const timeIn = status === 'present' && validTime(body.timeIn) ? body.timeIn : null;
 
   const now = new Date().toISOString();
+  // If status is 'no_work', map to dbStatus: 'absent' and dbLeaveType: 'no_work'
+  // for seamless compatibility with PostgreSQL attendance_status_check constraint ('present', 'absent').
+  const dbStatus = status === 'no_work' ? 'absent' : status;
+  const dbLeaveType = status === 'no_work' ? 'no_work' : leaveType;
+
   const row = {
-    worker_id: workerId, date, status,
-    leave_type: leaveType, notes,
+    worker_id: workerId, date, status: dbStatus,
+    leave_type: dbLeaveType, notes,
     recorded_by: 'supervisor', recorded_at: now, updated_at: now,
     is_late: isLate,
   };
   if (timeIn) row.time_in = timeIn;
-  if (status === 'absent') {
+  if (status === 'absent' || status === 'no_work') {
     row.time_in = null; row.time_out = null; row.total_hours = null;
     row.lunch_hours = 0; row.duty_hours = 0; row.overtime_hours = 0;
     row.daily_wage = 0; row.overtime_wage = 0;
@@ -627,15 +717,40 @@ app.post('/api/attendance', async (c) => {
 
   let { error } = await sb.from('attendance').upsert(row, { onConflict: 'worker_id,date' });
   if (error) {
-    const basic = { worker_id: workerId, date, status, leave_type: leaveType, notes, recorded_by: 'supervisor', recorded_at: now, updated_at: now, is_late: isLate };
+    const basic = { worker_id: workerId, date, status: dbStatus, leave_type: dbLeaveType, notes, recorded_by: 'supervisor', recorded_at: now, updated_at: now, is_late: isLate };
     ({ error } = await sb.from('attendance').upsert(basic, { onConflict: 'worker_id,date' }));
   }
   if (error) return c.json({ error: error.message }, 500);
 
-  if (timeIn) {
-    await sb.from('meta').upsert({ key: `time:${workerId}:${date}`, value: JSON.stringify({ time_in: timeIn }) });
+  if (status === 'present') {
+    const metaKey = `time:${workerId}:${date}`;
+    const { data: curMeta } = await sb.from('meta').select('value').eq('key', metaKey).single();
+    let curData = {};
+    if (curMeta?.value) try { curData = JSON.parse(curMeta.value); } catch {}
+    const updatedMeta = {
+      ...curData,
+      time_in: timeIn || curData.time_in || '09:00',
+    };
+    if (otType) {
+      updatedMeta.ot_type = otType;
+    } else {
+      delete updatedMeta.ot_type;
+    }
+    if (body.site !== undefined) {
+      if (body.site) {
+        const cleanSite = String(body.site).trim();
+        updatedMeta.site = cleanSite;
+        await sb.from('meta').upsert({
+          key: `worker_site:${workerId}`,
+          value: JSON.stringify({ site: cleanSite, date, updated_at: now }),
+        });
+      } else {
+        delete updatedMeta.site;
+      }
+    }
+    await sb.from('meta').upsert({ key: metaKey, value: JSON.stringify(updatedMeta) });
   }
-  if (status === 'absent') {
+  if (status === 'absent' || status === 'no_work') {
     await sb.from('meta').delete().eq('key', `time:${workerId}:${date}`);
   }
 
@@ -650,6 +765,144 @@ app.post('/api/attendance', async (c) => {
 
   return c.json({ ok: true, emailSent });
 });
+
+app.post('/api/attendance/site', async (c) => {
+  const sb = c.get('sb');
+  const body = await c.req.json();
+  const { workerId, date } = body;
+  if (!workerId || !validDate(date)) {
+    return c.json({ error: 'Invalid workerId or date' }, 400);
+  }
+  const cleanSite = body.site ? String(body.site).trim() : null;
+  const now = new Date().toISOString();
+
+  const metaKey = `time:${workerId}:${date}`;
+  const { data: curMeta } = await sb.from('meta').select('value').eq('key', metaKey).single();
+  let curData = {};
+  if (curMeta?.value) try { curData = JSON.parse(curMeta.value); } catch {}
+
+  if (cleanSite) {
+    curData.site = cleanSite;
+  } else {
+    delete curData.site;
+  }
+  await sb.from('meta').upsert({ key: metaKey, value: JSON.stringify(curData) });
+
+  if (cleanSite) {
+    await sb.from('meta').upsert({
+      key: `worker_site:${workerId}`,
+      value: JSON.stringify({ site: cleanSite, date, updated_at: now }),
+    });
+  }
+
+  return c.json({ ok: true, site: cleanSite });
+});
+
+app.post('/api/attendance/leave-range', async (c) => {
+  const sb = c.get('sb');
+  const body = await c.req.json();
+  const { workerId, startDate, endDate } = body;
+  const leaveType = body.leaveType || 'annual';
+  const notes = body.notes ? String(body.notes).slice(0, 300) : null;
+
+  if (!workerId || !validDate(startDate) || !validDate(endDate) || startDate > endDate) {
+    return c.json({ error: 'Invalid workerId or date range' }, 400);
+  }
+  if (!LEAVE_TYPES.includes(leaveType)) {
+    return c.json({ error: 'bad leave type' }, 400);
+  }
+
+  const { data: worker } = await sb
+    .from('workers')
+    .select('id, name, email')
+    .eq('id', workerId).eq('active', true)
+    .single();
+  if (!worker) return c.json({ error: 'unknown worker' }, 404);
+
+  const dates = [];
+  let cur = new Date(startDate + 'T00:00:00Z');
+  const end = new Date(endDate + 'T00:00:00Z');
+
+  const diffDays = Math.round((end - cur) / 864e5) + 1;
+  if (diffDays > 90) {
+    return c.json({ error: 'Date range cannot exceed 90 days' }, 400);
+  }
+
+  while (cur <= end) {
+    dates.push(cur.toISOString().slice(0, 10));
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+
+  const now = new Date().toISOString();
+  const rows = dates.map((d) => ({
+    worker_id: workerId,
+    date: d,
+    status: 'absent',
+    leave_type: leaveType,
+    notes: notes || (dates.length > 1 ? `Annual Leave (${startDate} to ${endDate})` : null),
+    recorded_by: 'supervisor',
+    recorded_at: now,
+    updated_at: now,
+    is_late: false,
+    time_in: null,
+    time_out: null,
+    total_hours: null,
+    lunch_hours: 0,
+    duty_hours: 0,
+    overtime_hours: 0,
+    daily_wage: 0,
+    overtime_wage: 0,
+  }));
+
+  for (let i = 0; i < rows.length; i += 100) {
+    const chunk = rows.slice(i, i + 100);
+    let { error } = await sb.from('attendance').upsert(chunk, { onConflict: 'worker_id,date' });
+    if (error) {
+      const basicChunk = chunk.map(({ worker_id, date, status, leave_type, notes, recorded_by, recorded_at, updated_at, is_late }) => ({
+        worker_id, date, status, leave_type, notes, recorded_by, recorded_at, updated_at, is_late,
+      }));
+      ({ error } = await sb.from('attendance').upsert(basicChunk, { onConflict: 'worker_id,date' }));
+      if (error) return c.json({ error: error.message }, 500);
+    }
+  }
+
+  for (const d of dates) {
+    await sb.from('meta').delete().eq('key', `time:${workerId}:${d}`);
+  }
+
+  const env = getEnv(c);
+  if (worker.email && env.RESEND_API_KEY) {
+    try {
+      await sendLeaveRangeEmail(env, worker, startDate, endDate, dates.length, leaveType, notes);
+    } catch {}
+  }
+
+  return c.json({ ok: true, count: dates.length, startDate, endDate, dates });
+});
+
+async function sendLeaveRangeEmail(env, worker, startDate, endDate, daysCount, leaveType, notes) {
+  if (!env.RESEND_API_KEY || !worker.email) return;
+  const label = LEAVE_LABELS[leaveType || 'annual'] || 'Annual Leave';
+  const fmtStart = new Date(startDate + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  const fmtEnd = new Date(endDate + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: env.RESEND_FROM || 'WorkTrack Attendance <onboarding@resend.dev>',
+      to: [worker.email],
+      subject: `Approved ${label}: ${fmtStart} to ${fmtEnd} (${daysCount} days)`,
+      text:
+        `Hello ${worker.name},\n\n` +
+        `Your ${label} has been recorded from ${fmtStart} to ${fmtEnd} (${daysCount} days).\n` +
+        (notes ? `Note from supervisor: ${notes}\n` : '') +
+        `\nWorkTrack Attendance System`,
+    }),
+  });
+}
 
 // --- absence notification email ----------------------------------------------
 async function sendAbsenceEmail(env, worker, date, leaveType, notes) {
@@ -710,7 +963,7 @@ app.post('/api/attendance/clock-out', async (c) => {
   if (!validDate(date) || !validTime(timeOut)) return c.json({ error: 'bad input' }, 400);
 
   let { data: rec } = await sb.from('attendance')
-    .select('worker_id, status')
+    .select('worker_id, status, notes')
     .eq('worker_id', workerId).eq('date', date).single();
   if (!rec) return c.json({ error: 'No attendance record for this date' }, 404);
   if (rec.status !== 'present') return c.json({ error: 'Worker is not marked present' }, 400);
@@ -719,6 +972,12 @@ app.post('/api/attendance/clock-out', async (c) => {
   const { data: timeMeta } = await sb.from('meta').select('value').eq('key', metaKey).single();
   let timeData = {};
   if (timeMeta?.value) try { timeData = JSON.parse(timeMeta.value); } catch {}
+
+  let otType = body.otType || timeData.ot_type;
+  if (!otType && rec.notes) {
+    if (rec.notes.includes('Sunday Overtime')) otType = 'sunday';
+    else if (rec.notes.includes('Holiday Overtime')) otType = 'holiday';
+  }
 
   const shiftCfg = await getShiftConfig(sb);
   const workHrs = Number(shiftCfg.work_hours) || 8;
@@ -743,8 +1002,17 @@ app.post('/api/attendance/clock-out', async (c) => {
 
   const totalHrs = (outMins - inMins) / 60;
   const netHrs = Math.max(0, totalHrs - lunchHrs);
-  const dutyHrs = Math.min(netHrs, workHrs);
-  const otHrs = Math.max(0, netHrs - workHrs);
+
+  let dutyHrs, otHrs;
+  if (otType === 'sunday' || otType === 'holiday') {
+    // Feature 4: Sunday & Holiday Overtime — ALL net hours count as overtime, duty_hours = 0
+    dutyHrs = 0;
+    otHrs = netHrs;
+  } else {
+    // Normal present day: duty_hours = min(8, netHrs), overtime = max(0, netHrs - 8)
+    dutyHrs = Math.min(netHrs, workHrs);
+    otHrs = Math.max(0, netHrs - workHrs);
+  }
 
   const wages = calcWages(worker, dutyHrs, otHrs, date, workHrs);
 
@@ -759,13 +1027,28 @@ app.post('/api/attendance/clock-out', async (c) => {
       overtime_hours: Math.round(otHrs * 100) / 100,
       daily_wage: wages.dailyWage,
       overtime_wage: wages.overtimeWage,
+      ot_type: otType || undefined,
     }),
   });
+
+  try {
+    await sb.from('attendance').update({
+      time_in: timeIn,
+      time_out: timeOut,
+      total_hours: Math.round(totalHrs * 100) / 100,
+      lunch_hours: lunchHrs,
+      duty_hours: Math.round(dutyHrs * 100) / 100,
+      overtime_hours: Math.round(otHrs * 100) / 100,
+      daily_wage: wages.dailyWage,
+      overtime_wage: wages.overtimeWage,
+    }).eq('worker_id', workerId).eq('date', date);
+  } catch {}
 
   return c.json({
     ok: true,
     hours: { total: totalHrs, lunch: lunchHrs, duty: dutyHrs, overtime: otHrs },
     wages,
+    otType: otType || null,
   });
 });
 
@@ -815,8 +1098,15 @@ app.post('/api/attendance/close', async (c) => {
 
   const { data: existing } = await sb
     .from('attendance')
-    .select('worker_id, status, is_late')
+    .select('worker_id, status, leave_type, is_late')
     .eq('date', date);
+
+  for (const r of existing || []) {
+    if (r.leave_type === 'no_work' || r.status === 'no_work') {
+      r.status = 'no_work';
+      r.leave_type = null;
+    }
+  }
 
   const markedIds = new Set((existing || []).map((r) => r.worker_id));
   const unmarked = allWorkers.filter((w) => !markedIds.has(w.id));
@@ -933,6 +1223,60 @@ app.get('/api/holidays', async (c) => {
   return c.json({ holidays: data || [] });
 });
 
+// --- public worker verification & digital credential card API ----------------
+app.get('/api/public/worker/:id', async (c) => {
+  const sb = c.get('sb');
+  const id = c.req.param('id');
+
+  let { data: worker } = await sb.from('workers')
+    .select('id, name, department, designation, active, created_at')
+    .eq('id', id).single();
+  if (!worker) return c.json({ error: 'Worker not found' }, 404);
+
+  const { data: wExtra } = await sb.from('meta').select('value').eq('key', `worker_extra:${id}`).single();
+  if (wExtra?.value) { try { Object.assign(worker, JSON.parse(wExtra.value)); } catch {} }
+  if (!worker.worker_type) worker.worker_type = 'company';
+
+  let experience = null;
+  if (worker.doj) {
+    const dojDate = new Date(worker.doj + 'T00:00:00');
+    const now = new Date();
+    let years = now.getFullYear() - dojDate.getFullYear();
+    let months = now.getMonth() - dojDate.getMonth();
+    if (months < 0) { years--; months += 12; }
+    if (years <= 0) experience = `${months} mos`;
+    else if (months === 0) experience = `${years} yrs`;
+    else experience = `${years} yrs ${months} mos`;
+  }
+
+  return c.json({
+    worker: {
+      id: worker.id,
+      name: worker.name,
+      department: worker.department,
+      designation: worker.designation || (worker.worker_type === 'contract' ? 'External Contractor' : 'Company Staff'),
+      worker_type: worker.worker_type,
+      doj: worker.doj || null,
+      experience,
+      photo: worker.photo || null,
+      active: worker.active !== false,
+      // Contact communication channels
+      phone: worker.phone || '+971 4 3470252',
+      mobile: worker.mobile || worker.phone || '+971 50 634 4209',
+      whatsapp: worker.whatsapp || worker.mobile || worker.phone || '+9715063442009',
+      telegram: worker.telegram || 'altabadubai',
+      email: worker.email || 'altabadubai@gmail.com',
+      // Company official credentials
+      company: 'AL TABA TECHNICAL SERVICES L.L.C',
+      company_phone: '+971 4 3470252',
+      company_email: 'altabadubai@gmail.com',
+      company_address: 'P.O. Box: 410634, Deira Murar Building No. 14, Flat No. 204, Frij Al Murra, Deira Dubai, UAE',
+      verified: true,
+      verified_at: new Date().toISOString()
+    }
+  });
+});
+
 // --- admin APIs ----------------------------------------------------------------
 app.use('/api/admin/*', async (c, next) => {
   const denied = await requireRole(c, 'admin');
@@ -955,6 +1299,58 @@ app.delete('/api/admin/holidays/:id', async (c) => {
   const id = c.req.param('id');
   const { error } = await sb.from('holidays').delete().eq('id', id);
   if (error) return c.json({ error: error.message }, 500);
+  return c.json({ ok: true });
+});
+
+// --- companies management (admin only) ----------------------------------------
+app.post('/api/admin/companies', async (c) => {
+  const sb = c.get('sb');
+  const body = await c.req.json();
+  const name = (body.name || '').trim();
+  if (!name) return c.json({ error: 'Company name is required' }, 400);
+
+  const list = await getCompaniesList(sb);
+  const exists = list.some(item => item.name.toLowerCase() === name.toLowerCase());
+  if (exists) return c.json({ error: 'Company with this name already exists' }, 400);
+
+  const newCompany = {
+    id: 'cmp_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    name,
+    active: true,
+    created_at: new Date().toISOString()
+  };
+  list.push(newCompany);
+  await saveCompaniesList(sb, list);
+  return c.json({ ok: true, company: newCompany });
+});
+
+app.patch('/api/admin/companies/:id', async (c) => {
+  const sb = c.get('sb');
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const list = await getCompaniesList(sb);
+  const idx = list.findIndex(item => item.id === id);
+  if (idx === -1) return c.json({ error: 'Company not found' }, 404);
+
+  if (body.name !== undefined) {
+    const name = String(body.name).trim();
+    if (!name) return c.json({ error: 'Company name cannot be empty' }, 400);
+    list[idx].name = name;
+  }
+  if (body.active !== undefined) {
+    list[idx].active = Boolean(body.active);
+  }
+  list[idx].updated_at = new Date().toISOString();
+  await saveCompaniesList(sb, list);
+  return c.json({ ok: true, company: list[idx] });
+});
+
+app.delete('/api/admin/companies/:id', async (c) => {
+  const sb = c.get('sb');
+  const id = c.req.param('id');
+  let list = await getCompaniesList(sb);
+  list = list.filter(item => item.id !== id);
+  await saveCompaniesList(sb, list);
   return c.json({ ok: true });
 });
 
@@ -1074,13 +1470,19 @@ app.get('/api/admin/overview', async (c) => {
     .gte('date', dateStart).lte('date', dateEnd);
 
   const byWorker = {};
-  for (const w of workers) byWorker[w.id] = { ...w, presentDays: 0, lateDays: 0, absentDays: 0, ml: 0, emergency: 0, workRelated: 0, casual: 0, unpaid: 0, unspecified: 0 };
+  for (const w of workers) byWorker[w.id] = { ...w, presentDays: 0, lateDays: 0, absentDays: 0, noWorkDays: 0, ml: 0, annual: 0, emergency: 0, workRelated: 0, casual: 0, unpaid: 0, unspecified: 0 };
   for (const r of records || []) {
+    if (r.leave_type === 'no_work' || r.status === 'no_work') {
+      r.status = 'no_work';
+      r.leave_type = null;
+    }
     const w = byWorker[r.worker_id];
     if (!w) continue;
     if (r.status === 'present') {
       w.presentDays++;
       if (r.is_late) w.lateDays++;
+    } else if (r.status === 'no_work') {
+      w.noWorkDays = (w.noWorkDays || 0) + 1;
     } else {
       w.absentDays++;
       const lt = r.leave_type || 'unspecified';
@@ -1098,6 +1500,7 @@ app.get('/api/admin/overview', async (c) => {
 
   const { data: timeMeta } = await sb.from('meta').select('key, value').like('key', 'time:%');
   const wageMap = {};
+  const siteCounts = {};
   for (const t of timeMeta || []) {
     const parts = t.key.split(':');
     const wid = parts[1], date = parts[2];
@@ -1109,15 +1512,32 @@ app.get('/api/admin/overview', async (c) => {
       wageMap[wid].totalOvertimeHours += tv.overtime_hours || 0;
       wageMap[wid].totalDailyWage += tv.daily_wage || 0;
       wageMap[wid].totalOvertimeWage += tv.overtime_wage || 0;
+      if (tv.site && typeof tv.site === 'string') {
+        const sName = tv.site.trim();
+        if (sName) {
+          if (!siteCounts[wid]) siteCounts[wid] = {};
+          siteCounts[wid][sName] = (siteCounts[wid][sName] || 0) + 1;
+        }
+      }
     } catch {}
   }
 
   const rows = Object.values(byWorker).map((r) => {
     const extra = extraMap[r.id] || {};
     const wages = wageMap[r.id] || {};
+    const sc = siteCounts[r.id] || {};
+    let primarySite = null;
+    let maxSiteDays = 0;
+    for (const [sName, sDays] of Object.entries(sc)) {
+      if (sDays > maxSiteDays) {
+        maxSiteDays = sDays;
+        primarySite = `${sName} (${sDays}d)`;
+      }
+    }
     return {
       ...r,
       ...extra,
+      primarySite,
       totalDutyHours: Math.round((wages.totalDutyHours || 0) * 100) / 100,
       totalOvertimeHours: Math.round((wages.totalOvertimeHours || 0) * 100) / 100,
       totalDailyWage: Math.round((wages.totalDailyWage || 0) * 100) / 100,
@@ -1131,14 +1551,23 @@ app.get('/api/admin/overview', async (c) => {
 
   let todayStats = null;
   if (today) {
-    const { data: tRecs } = await sb.from('attendance').select('status, is_late').eq('date', today);
+    const { data: tRecs } = await sb.from('attendance').select('status, leave_type, is_late').eq('date', today);
+    for (const r of tRecs || []) {
+      if (r.leave_type === 'no_work' || r.status === 'no_work') {
+        r.status = 'no_work';
+        r.leave_type = null;
+      }
+    }
     const present = (tRecs || []).filter((r) => r.status === 'present').length;
     const late = (tRecs || []).filter((r) => r.status === 'present' && r.is_late).length;
-    todayStats = { marked: (tRecs || []).length, present, late, totalWorkers: workers.length };
+    const absent = (tRecs || []).filter((r) => r.status === 'absent').length;
+    const noWork = (tRecs || []).filter((r) => r.status === 'no_work').length;
+    todayStats = { marked: (tRecs || []).length, present, late, absent, noWork, totalWorkers: workers.length };
   }
 
   const sumPresent = rows.reduce((s, r) => s + r.presentDays, 0);
   const sumAbsent = rows.reduce((s, r) => s + r.absentDays, 0);
+  const sumNoWork = rows.reduce((s, r) => s + (r.noWorkDays || 0), 0);
   const period = month ? `${year}-${month}` : year;
   return c.json({
     year, month,
@@ -1147,6 +1576,7 @@ app.get('/api/admin/overview', async (c) => {
     overall: {
       presentDays: sumPresent,
       absentDays: sumAbsent,
+      noWorkDays: sumNoWork,
       pct: sumPresent + sumAbsent > 0
         ? Math.round((sumPresent / (sumPresent + sumAbsent)) * 1000) / 10
         : null,
@@ -1192,29 +1622,66 @@ app.get('/api/admin/worker/:id', async (c) => {
     try { timeMap[d] = JSON.parse(t.value); } catch {}
   }
   for (const r of records || []) {
+    if (r.leave_type === 'no_work' || r.status === 'no_work') {
+      r.status = 'no_work';
+      r.leave_type = null;
+    }
     const td = timeMap[r.date];
     if (td) {
       if (!r.time_in) r.time_in = td.time_in || null;
       if (!r.time_out) r.time_out = td.time_out || null;
-      if (!r.duty_hours && td.duty_hours) r.duty_hours = td.duty_hours;
-      if (!r.overtime_hours && td.overtime_hours) r.overtime_hours = td.overtime_hours;
-      if (!r.daily_wage && td.daily_wage) r.daily_wage = td.daily_wage;
-      if (!r.overtime_wage && td.overtime_wage) r.overtime_wage = td.overtime_wage;
+      if (r.duty_hours === null || r.duty_hours === undefined) r.duty_hours = td.duty_hours;
+      if (r.overtime_hours === null || r.overtime_hours === undefined) r.overtime_hours = td.overtime_hours;
+      if (r.daily_wage === null || r.daily_wage === undefined) r.daily_wage = td.daily_wage;
+      if (r.overtime_wage === null || r.overtime_wage === undefined) r.overtime_wage = td.overtime_wage;
+      if (td.ot_type) r.ot_type = td.ot_type;
+      if (td.site) r.site = td.site;
+    }
+    if (!r.ot_type && r.status === 'present') {
+      if (r.notes?.includes('Sunday Overtime')) r.ot_type = 'sunday';
+      else if (r.notes?.includes('Holiday Overtime')) r.ot_type = 'holiday';
     }
   }
 
   const monthMap = {};
   for (const r of records || []) {
     const m = r.date.slice(5, 7);
-    if (!monthMap[m]) monthMap[m] = { month: m, presentDays: 0, lateDays: 0, absentDays: 0, ml: 0, emergency: 0, workRelated: 0, casual: 0, unpaid: 0, unspecified: 0, totalDutyHours: 0, totalOvertimeHours: 0, totalDailyWage: 0, totalOvertimeWage: 0 };
+    if (!monthMap[m]) monthMap[m] = {
+      month: m,
+      presentDays: 0,
+      lateDays: 0,
+      absentDays: 0,
+      noWorkDays: 0,
+      ml: 0,
+      annual: 0,
+      emergency: 0,
+      workRelated: 0,
+      casual: 0,
+      unpaid: 0,
+      unspecified: 0,
+      totalDutyHours: 0,
+      totalOvertimeHours: 0,
+      sundayOtHours: 0,
+      holidayOtHours: 0,
+      totalDailyWage: 0,
+      totalOvertimeWage: 0,
+    };
     const mm = monthMap[m];
     if (r.status === 'present') {
       mm.presentDays++;
       if (r.is_late) mm.lateDays++;
       mm.totalDutyHours += Number(r.duty_hours) || 0;
-      mm.totalOvertimeHours += Number(r.overtime_hours) || 0;
+      const otH = Number(r.overtime_hours) || 0;
+      mm.totalOvertimeHours += otH;
+      if (r.ot_type === 'sunday') {
+        mm.sundayOtHours += otH;
+      } else if (r.ot_type === 'holiday') {
+        mm.holidayOtHours += otH;
+      }
       mm.totalDailyWage += Number(r.daily_wage) || 0;
       mm.totalOvertimeWage += Number(r.overtime_wage) || 0;
+    } else if (r.status === 'no_work') {
+      mm.noWorkDays = (mm.noWorkDays || 0) + 1;
     } else {
       mm.absentDays++;
       const lt = r.leave_type || 'unspecified';
@@ -1225,6 +1692,8 @@ app.get('/api/admin/worker/:id', async (c) => {
   for (const mm of Object.values(monthMap)) {
     mm.totalDutyHours = Math.round(mm.totalDutyHours * 100) / 100;
     mm.totalOvertimeHours = Math.round(mm.totalOvertimeHours * 100) / 100;
+    mm.sundayOtHours = Math.round(mm.sundayOtHours * 100) / 100;
+    mm.holidayOtHours = Math.round(mm.holidayOtHours * 100) / 100;
     mm.totalDailyWage = Math.round(mm.totalDailyWage * 100) / 100;
     mm.totalOvertimeWage = Math.round(mm.totalOvertimeWage * 100) / 100;
     mm.totalWage = mm.totalDailyWage + mm.totalOvertimeWage;
@@ -1233,9 +1702,12 @@ app.get('/api/admin/worker/:id', async (c) => {
 
   let payroll = null;
   const dailyRate = worker.daily_rate || 0;
-  const hasSalaryInfo = dailyRate > 0 || (worker.basic_salary || 0) > 0;
+  const basicSalary = worker.basic_salary || 0;
+  const dutyRateHr = worker.duty_rate_hr || 0;
+  const isContract = worker.worker_type === 'contract' || worker.department === 'Ext. Manpower';
+  const hasSalaryInfo = dailyRate > 0 || basicSalary > 0 || dutyRateHr > 0 || isContract || (records && records.length > 0);
   if (hasSalaryInfo) {
-    const paidLeaves = ['ml', 'casual', 'emergency', 'work_related'];
+    const paidLeaves = ['ml', 'annual', 'casual', 'emergency', 'work_related'];
     let paidDays = 0;
     let unpaidDays = 0;
     let totalDutyHours = 0;
@@ -1251,12 +1723,18 @@ app.get('/api/admin/worker/:id', async (c) => {
         totalOvertimeWage += Number(r.overtime_wage) || 0;
       }
       else if (r.status === 'absent' && paidLeaves.includes(r.leave_type)) paidDays++;
+      else if (r.status === 'no_work') unpaidDays++;
       else unpaidDays++;
     }
     payroll = {
-      dailyRate, basicSalary: worker.basic_salary || 0, allowance: worker.allowance || 0,
+      dailyRate,
+      basicSalary,
+      allowance: worker.allowance || 0,
       otRate: worker.ot_rate || 0,
-      paidDays, unpaidDays, totalDays: paidDays + unpaidDays,
+      dutyRateHr,
+      paidDays,
+      unpaidDays,
+      totalDays: paidDays + unpaidDays,
       totalDutyHours: Math.round(totalDutyHours * 100) / 100,
       totalOvertimeHours: Math.round(totalOvertimeHours * 100) / 100,
       totalDailyWage: Math.round(totalDailyWage * 100) / 100,
@@ -1309,11 +1787,15 @@ app.get('/api/admin/worker/:id/payslip', async (c) => {
   const shiftCfg = await getShiftConfig(sb);
   const workHrs = Number(shiftCfg.work_hours) || 8;
 
-  let presentDays = 0, absentDays = 0, lateDays = 0;
+  let presentDays = 0, absentDays = 0, lateDays = 0, noWorkDays = 0;
   let totalDutyHours = 0, totalOvertimeHours = 0;
   let totalDutyWage = 0, totalOvertimeWage = 0;
 
   for (const r of records) {
+    if (r.leave_type === 'no_work' || r.status === 'no_work') {
+      r.status = 'no_work';
+      r.leave_type = null;
+    }
     const td = timeMap[r.date] || {};
     if (r.status === 'present') {
       presentDays++;
@@ -1322,6 +1804,8 @@ app.get('/api/admin/worker/:id/payslip', async (c) => {
       totalOvertimeHours += Number(td.overtime_hours) || 0;
       totalDutyWage += Number(td.daily_wage) || 0;
       totalOvertimeWage += Number(td.overtime_wage) || 0;
+    } else if (r.status === 'no_work') {
+      noWorkDays++;
     } else {
       absentDays++;
     }
@@ -1353,7 +1837,7 @@ app.get('/api/admin/worker/:id/payslip', async (c) => {
       basic, allowance: allow,
       hourlyRate: Math.round(hourlyRate * 100) / 100,
       otRate: Math.round(otRateVal * 100) / 100,
-      presentDays, absentDays, lateDays,
+      presentDays, absentDays, lateDays, noWorkDays,
       totalDutyHours: Math.round(totalDutyHours * 100) / 100,
       totalOvertimeHours: Math.round(totalOvertimeHours * 100) / 100,
       dutyWage: Math.round(totalDutyWage * 100) / 100,
@@ -1382,11 +1866,16 @@ app.get('/api/admin/report/all.csv', async (c) => {
   const { data: records } = await sb.from('attendance').select('worker_id, status, leave_type').gte('date', dateStart).lte('date', dateEnd);
 
   const byWorker = {};
-  for (const w of workers) byWorker[w.id] = { ...w, presentDays: 0, absentDays: 0, ml: 0, emergency: 0, workRelated: 0, casual: 0, unpaid: 0, unspecified: 0 };
+  for (const w of workers) byWorker[w.id] = { ...w, presentDays: 0, absentDays: 0, noWorkDays: 0, ml: 0, annual: 0, emergency: 0, workRelated: 0, casual: 0, unpaid: 0, unspecified: 0 };
   for (const r of records || []) {
+    if (r.leave_type === 'no_work' || r.status === 'no_work') {
+      r.status = 'no_work';
+      r.leave_type = null;
+    }
     const w = byWorker[r.worker_id];
     if (!w) continue;
     if (r.status === 'present') w.presentDays++;
+    else if (r.status === 'no_work') w.noWorkDays++;
     else {
       w.absentDays++;
       const lt = r.leave_type || 'unspecified';
@@ -1404,9 +1893,9 @@ app.get('/api/admin/report/all.csv', async (c) => {
 
   const lines = [
     `Attendance Summary - ${period}`,
-    `Worker ID,Worker Name,Department,Present Days,Absent Days,ML,Emergency,Work-related,Casual,Unpaid,Unspecified,Attendance %`,
+    `Worker ID,Worker Name,Department,Present Days,Absent Days,No Work Days,ML,Annual,Emergency,Work-related,Casual,Unpaid,Unspecified,Attendance %`,
     ...rows.map((r) =>
-      [r.id, r.name, r.department, r.presentDays, r.absentDays, r.ml, r.emergency,
+      [r.id, r.name, r.department, r.presentDays, r.absentDays, r.noWorkDays, r.ml, r.annual, r.emergency,
        r.workRelated, r.casual, r.unpaid, r.unspecified, r.pct ?? ''].map(csvEscape).join(',')),
   ];
   return csvResponse(c, lines.join('\n'), `attendance-summary-${period}.csv`);
@@ -1428,27 +1917,35 @@ app.get('/api/admin/report/worker/:id', async (c) => {
     .order('date');
 
   const dow = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  for (const r of records || []) {
+    if (r.leave_type === 'no_work' || r.status === 'no_work') {
+      r.status = 'no_work';
+      r.leave_type = null;
+    }
+  }
   const lines = [
     `Attendance Record - ${worker.name} (${worker.id}, ${worker.department}) - ${year}`,
     `Date,Day,Status,Leave Type,Notes,Marked By`,
     ...(records || []).map((r) =>
       [r.date,
        dow[new Date(r.date + 'T00:00:00Z').getUTCDay()],
-       r.status, r.leave_type ? LEAVE_LABELS[r.leave_type] : '',
+       r.status === 'no_work' ? 'No Work' : (r.status === 'present' ? 'Present' : 'Absent'),
+       r.leave_type ? LEAVE_LABELS[r.leave_type] : '',
        r.notes || '', r.recorded_by || ''].map(csvEscape).join(',')),
   ];
 
   const byMonth = {};
   for (const r of records || []) {
     const m = r.date.slice(5, 7);
-    if (!byMonth[m]) byMonth[m] = { p: 0, a: 0 };
-    byMonth[m][r.status === 'present' ? 'p' : 'a']++;
+    if (!byMonth[m]) byMonth[m] = { p: 0, a: 0, nw: 0 };
+    const statKey = r.status === 'present' ? 'p' : (r.status === 'no_work' ? 'nw' : 'a');
+    byMonth[m][statKey] = (byMonth[m][statKey] || 0) + 1;
   }
   lines.push('');
-  lines.push('Month,Present Days,Absent Days,Attendance %');
+  lines.push('Month,Present Days,Absent Days,No Work Days,Attendance %');
   for (const m of Object.keys(byMonth).sort()) {
-    const { p, a } = byMonth[m];
-    lines.push([m, p, a, p + a ? Math.round((p / (p + a)) * 1000) / 10 : ''].join(','));
+    const { p, a, nw } = byMonth[m];
+    lines.push([m, p, a, nw || 0, p + a ? Math.round((p / (p + a)) * 1000) / 10 : ''].join(','));
   }
   return csvResponse(c, lines.join('\n'), `attendance-${worker.id}-${year}.csv`);
 });
