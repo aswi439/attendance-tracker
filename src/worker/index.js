@@ -53,13 +53,21 @@ export async function saveCompaniesList(sb, list) {
 // ---------------------------------------------------------------------------
 export const app = new Hono();
 
+app.onError((err, c) => {
+  console.error('[Hono Server Error]:', err);
+  return c.json({ error: err?.message || 'Internal server error' }, 500);
+});
+
+const FALLBACK_SUPABASE_URL = 'https://jkdnnaqwrbwmnllxkruw.supabase.co';
+const FALLBACK_SUPABASE_KEY = 'sb_publishable_ks83OdXO8A6xuYlnCts6Fg_hIprek0J';
+
 export function getEnv(c) {
   const env = c?.env || {};
   return {
-    SUPABASE_URL: env.SUPABASE_URL || (typeof process !== 'undefined' ? process.env?.SUPABASE_URL : undefined),
-    SUPABASE_KEY: env.SUPABASE_KEY || (typeof process !== 'undefined' ? process.env?.SUPABASE_KEY : undefined),
+    SUPABASE_URL: env.SUPABASE_URL || (typeof process !== 'undefined' ? process.env?.SUPABASE_URL : undefined) || FALLBACK_SUPABASE_URL,
+    SUPABASE_KEY: env.SUPABASE_KEY || (typeof process !== 'undefined' ? process.env?.SUPABASE_KEY : undefined) || FALLBACK_SUPABASE_KEY,
     RESEND_API_KEY: env.RESEND_API_KEY || (typeof process !== 'undefined' ? process.env?.RESEND_API_KEY : undefined),
-    RESEND_FROM: env.RESEND_FROM || (typeof process !== 'undefined' ? process.env?.RESEND_FROM : undefined),
+    RESEND_FROM: env.RESEND_FROM || (typeof process !== 'undefined' ? process.env?.RESEND_FROM : undefined) || 'WorkTrack Attendance <onboarding@resend.dev>',
     ASSETS: env.ASSETS,
   };
 }
